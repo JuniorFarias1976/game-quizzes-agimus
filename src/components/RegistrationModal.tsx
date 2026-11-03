@@ -19,7 +19,8 @@ import {
   Briefcase, 
   User, 
   ShieldCheck, 
-  FileText 
+  FileText,
+  Lock
 } from 'lucide-react';
 
 interface RegistrationModalProps {
@@ -209,13 +210,28 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg transition"
-            title="Fechar"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {onOpenAdminLogin && !isAdminLoggedIn && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenAdminLogin();
+                }}
+                className="p-1.5 text-slate-400 hover:text-cyan-400 bg-slate-900 border border-slate-800 rounded-lg transition"
+                title="Acesso Administrador"
+              >
+                <Lock className="w-4 h-4 text-cyan-400" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg transition"
+              title="Fechar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Tab Selection - Strictly visible only to Admin */}

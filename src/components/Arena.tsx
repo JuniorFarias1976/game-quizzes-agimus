@@ -625,10 +625,10 @@ export const Arena: React.FC<ArenaProps> = ({
 
           {/* Quick Controls shown on Mobile Header row */}
           <div className="flex sm:hidden items-center gap-1.5">
-            {isAdminLoggedIn && onOpenControlPanel && (
+            {onOpenControlPanel && (
               <button
                 onClick={onOpenControlPanel}
-                className="flex items-center gap-1 px-2 py-1 text-slate-300 bg-slate-800/90 rounded-lg border border-cyan-500/30 text-[10px] font-mono-code font-bold"
+                className="flex items-center gap-1 px-2 py-1 text-slate-300 hover:text-white bg-slate-800/90 rounded-lg border border-cyan-500/30 text-[10px] font-mono-code font-bold"
                 title="Painel de Controle (Admin)"
               >
                 <Sliders className="w-3 h-3 text-cyan-400" />
@@ -700,14 +700,14 @@ export const Arena: React.FC<ArenaProps> = ({
 
         {/* Action Controls for Desktop */}
         <div className="hidden sm:flex items-center gap-2">
-          {isAdminLoggedIn && onOpenControlPanel && (
+          {onOpenControlPanel && (
             <button
               onClick={onOpenControlPanel}
               className="flex items-center gap-1.5 px-2.5 py-1.5 text-slate-300 hover:text-cyan-300 bg-slate-800/90 hover:bg-slate-700/90 rounded-lg transition-colors border border-cyan-500/30 shadow-sm"
-              title="Painel de Controle Oculto (ALT + C)"
+              title="Painel de Controle (ALT + C)"
             >
               <Sliders className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-[10px] font-mono-code font-bold tracking-wider">ALT+C</span>
+              <span className="text-[10px] font-mono-code font-bold tracking-wider">PAINEL</span>
             </button>
           )}
 

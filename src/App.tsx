@@ -57,6 +57,7 @@ import { HiddenControlPanel } from './components/HiddenControlPanel';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { RegistrationModal } from './components/RegistrationModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Sliders, ShieldCheck, Lock, UserPlus } from 'lucide-react';
 
 const CUSTOM_IMAGE_STORAGE_KEY = 'neuroreflex_custom_image_v1';
@@ -787,6 +788,7 @@ export default function App() {
         onClose={() => setShowAdminLoginModal(false)}
         onSuccess={handleAdminLoginSuccess}
         isKioskLock={isAppLocked}
+        currentPasswordHash={adminSettings.passwordHash}
         title={isAppLocked ? 'Aplicativo Bloqueado pelo Administrador' : 'Acesso ao Modo Administrador'}
         subtitle={
           isAppLocked
@@ -795,22 +797,24 @@ export default function App() {
         }
       />
 
-      {/* Full Administrator Dashboard Modal */}
-      <AdminDashboardModal
-        isOpen={showAdminDashboardModal}
-        onClose={() => setShowAdminDashboardModal(false)}
-        onLogout={handleAdminLogout}
-        adminSettings={adminSettings}
-        onSaveAdminSettings={handleSaveAdminSettings}
-        leaderboardEntries={leaderboard}
-        onDeleteLeaderboardEntry={handleDeleteLeaderboardEntry}
-        onClearLeaderboard={handleClearLeaderboard}
-        onRestoreLeaderboard={handleRestoreLeaderboard}
-        registrations={registrations}
-        onDeleteRegistration={handleDeleteRegistration}
-        onClearRegistrations={handleClearRegistrations}
-        onForceSyncCloud={handleForceSyncCloud}
-      />
+      {/* Full Administrator Dashboard Modal protected with ErrorBoundary */}
+      <ErrorBoundary fallbackTitle="Erro ao abrir Painel de Controle">
+        <AdminDashboardModal
+          isOpen={showAdminDashboardModal}
+          onClose={() => setShowAdminDashboardModal(false)}
+          onLogout={handleAdminLogout}
+          adminSettings={adminSettings}
+          onSaveAdminSettings={handleSaveAdminSettings}
+          leaderboardEntries={leaderboard}
+          onDeleteLeaderboardEntry={handleDeleteLeaderboardEntry}
+          onClearLeaderboard={handleClearLeaderboard}
+          onRestoreLeaderboard={handleRestoreLeaderboard}
+          registrations={registrations}
+          onDeleteRegistration={handleDeleteRegistration}
+          onClearRegistrations={handleClearRegistrations}
+          onForceSyncCloud={handleForceSyncCloud}
+        />
+      </ErrorBoundary>
       </div>
     </div>
   );

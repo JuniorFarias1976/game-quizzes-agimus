@@ -109,12 +109,24 @@ async function sanitizeSettingsForCloud(settings: AppAdminSettings): Promise<App
 // -------------------------------------------------------------
 
 function mergeCloudSettings(cloudData: Partial<AppAdminSettings>): AppAdminSettings {
+  const cloudBranding = (cloudData.branding || {}) as Partial<AppAdminSettings['branding']>;
+  const validHex = (val: unknown, fallback: string) => {
+    if (typeof val === 'string' && /^#[0-9a-fA-F]{6}$/.test(val)) return val;
+    if (typeof val === 'string' && /^#[0-9a-fA-F]{3}$/.test(val)) return val;
+    return fallback;
+  };
+
+  const defaultHeaderBg = DEFAULT_ADMIN_SETTINGS.branding.headerBackgroundColor || '#060a14';
+
   return {
     ...DEFAULT_ADMIN_SETTINGS,
     ...cloudData,
+    passwordHash: cloudData.passwordHash || DEFAULT_ADMIN_SETTINGS.passwordHash,
+    lockEntireAppWithPassword: Boolean(cloudData.lockEntireAppWithPassword),
     customTargetImage: {
       ...DEFAULT_ADMIN_SETTINGS.customTargetImage,
       ...(cloudData.customTargetImage || {}),
+      customBorderColor: validHex(cloudData.customTargetImage?.customBorderColor, DEFAULT_ADMIN_SETTINGS.customTargetImage.customBorderColor),
       images: Array.isArray(cloudData.customTargetImage?.images)
         ? cloudData.customTargetImage.images
         : cloudData.customTargetImage?.imageUrl
@@ -127,7 +139,14 @@ function mergeCloudSettings(cloudData: Partial<AppAdminSettings>): AppAdminSetti
     },
     branding: {
       ...DEFAULT_ADMIN_SETTINGS.branding,
-      ...(cloudData.branding || {}),
+      ...cloudBranding,
+      primaryColor: validHex(cloudBranding.primaryColor, DEFAULT_ADMIN_SETTINGS.branding.primaryColor),
+      secondaryColor: validHex(cloudBranding.secondaryColor, DEFAULT_ADMIN_SETTINGS.branding.secondaryColor),
+      backgroundColor: validHex(cloudBranding.backgroundColor, DEFAULT_ADMIN_SETTINGS.branding.backgroundColor),
+      headerBackgroundColor: validHex(cloudBranding.headerBackgroundColor, defaultHeaderBg),
+      headerStyle: cloudBranding.headerStyle || DEFAULT_ADMIN_SETTINGS.branding.headerStyle,
+      backgroundPattern: cloudBranding.backgroundPattern || DEFAULT_ADMIN_SETTINGS.branding.backgroundPattern,
+      backgroundImageOpacity: typeof cloudBranding.backgroundImageOpacity === 'number' ? cloudBranding.backgroundImageOpacity : DEFAULT_ADMIN_SETTINGS.branding.backgroundImageOpacity,
     },
     logo: {
       ...DEFAULT_ADMIN_SETTINGS.logo,
@@ -137,6 +156,7 @@ function mergeCloudSettings(cloudData: Partial<AppAdminSettings>): AppAdminSetti
       ...DEFAULT_ADMIN_SETTINGS.registration,
       ...(cloudData.registration || {}),
     },
+    customLevelConfigs: cloudData.customLevelConfigs || {},
   };
 }
 

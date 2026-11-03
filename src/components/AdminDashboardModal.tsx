@@ -10,7 +10,7 @@ import {
   RegistrationFormConfig
 } from '../types/game';
 import { LEVELS } from '../utils/levels';
-import { updateAdminPassword } from '../utils/adminStorage';
+import { updateAdminPassword, DEFAULT_ADMIN_SETTINGS } from '../utils/adminStorage';
 import { THEME_PRESETS, TARGET_PRESET_IMAGES } from '../utils/brandingPresets';
 import { 
   ShieldCheck, 
@@ -84,12 +84,53 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onForceSyncCloud,
 }) => {
   const [activeTab, setActiveTab] = useState<'branding' | 'registration' | 'levels' | 'image' | 'endgame' | 'leaderboard' | 'security'>('branding');
-  const [settingsDraft, setSettingsDraft] = useState<AppAdminSettings>(adminSettings);
+  const [settingsDraft, setSettingsDraft] = useState<AppAdminSettings>(() => ({
+    ...DEFAULT_ADMIN_SETTINGS,
+    ...(adminSettings || {}),
+    branding: { ...DEFAULT_ADMIN_SETTINGS.branding, ...(adminSettings?.branding || {}) },
+    logo: { ...DEFAULT_ADMIN_SETTINGS.logo, ...(adminSettings?.logo || {}) },
+    customTargetImage: { ...DEFAULT_ADMIN_SETTINGS.customTargetImage, ...(adminSettings?.customTargetImage || {}) },
+    endGameImage: { ...DEFAULT_ADMIN_SETTINGS.endGameImage, ...(adminSettings?.endGameImage || {}) },
+    registration: { ...DEFAULT_ADMIN_SETTINGS.registration, ...(adminSettings?.registration || {}) },
+    customLevelConfigs: adminSettings?.customLevelConfigs || {},
+  }));
   const [notification, setNotification] = useState<string | null>(null);
 
   // Sync draft whenever adminSettings changes (e.g. from cloud)
   useEffect(() => {
-    setSettingsDraft(adminSettings);
+    if (adminSettings) {
+      setSettingsDraft((prev) => ({
+        ...DEFAULT_ADMIN_SETTINGS,
+        ...prev,
+        ...adminSettings,
+        branding: {
+          ...DEFAULT_ADMIN_SETTINGS.branding,
+          ...(prev?.branding || {}),
+          ...(adminSettings?.branding || {}),
+        },
+        logo: {
+          ...DEFAULT_ADMIN_SETTINGS.logo,
+          ...(prev?.logo || {}),
+          ...(adminSettings?.logo || {}),
+        },
+        customTargetImage: {
+          ...DEFAULT_ADMIN_SETTINGS.customTargetImage,
+          ...(prev?.customTargetImage || {}),
+          ...(adminSettings?.customTargetImage || {}),
+        },
+        endGameImage: {
+          ...DEFAULT_ADMIN_SETTINGS.endGameImage,
+          ...(prev?.endGameImage || {}),
+          ...(adminSettings?.endGameImage || {}),
+        },
+        registration: {
+          ...DEFAULT_ADMIN_SETTINGS.registration,
+          ...(prev?.registration || {}),
+          ...(adminSettings?.registration || {}),
+        },
+        customLevelConfigs: adminSettings?.customLevelConfigs || prev?.customLevelConfigs || {},
+      }));
+    }
   }, [adminSettings]);
 
   // Password change form
@@ -816,7 +857,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
-                        value={settingsDraft.branding.primaryColor}
+                        value={settingsDraft.branding.primaryColor || '#00d2ff'}
                         onChange={(e) =>
                           setSettingsDraft((prev) => ({
                             ...prev,
@@ -831,7 +872,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       />
                       <input
                         type="text"
-                        value={settingsDraft.branding.primaryColor}
+                        value={settingsDraft.branding.primaryColor || '#00d2ff'}
                         onChange={(e) =>
                           setSettingsDraft((prev) => ({
                             ...prev,
@@ -855,7 +896,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
-                        value={settingsDraft.branding.secondaryColor}
+                        value={settingsDraft.branding.secondaryColor || '#0284c7'}
                         onChange={(e) =>
                           setSettingsDraft((prev) => ({
                             ...prev,
@@ -870,7 +911,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       />
                       <input
                         type="text"
-                        value={settingsDraft.branding.secondaryColor}
+                        value={settingsDraft.branding.secondaryColor || '#0284c7'}
                         onChange={(e) =>
                           setSettingsDraft((prev) => ({
                             ...prev,
@@ -894,7 +935,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
-                        value={settingsDraft.branding.backgroundColor}
+                        value={settingsDraft.branding.backgroundColor || '#070c18'}
                         onChange={(e) =>
                           setSettingsDraft((prev) => ({
                             ...prev,
@@ -909,7 +950,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       />
                       <input
                         type="text"
-                        value={settingsDraft.branding.backgroundColor}
+                        value={settingsDraft.branding.backgroundColor || '#070c18'}
                         onChange={(e) =>
                           setSettingsDraft((prev) => ({
                             ...prev,

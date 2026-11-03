@@ -194,17 +194,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Admin Mode Button (Only visible if Admin is logged in) */}
-          {isAdminLoggedIn && (
+          {/* Admin Mode / Control Panel Button */}
+          {isAdminLoggedIn ? (
             <button
               onClick={onOpenAdmin}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border bg-emerald-950/80 border-emerald-500/60 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.3)] transition"
-              title="Modo Administrador Ativo (Clique para abrir painel)"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border bg-emerald-950/90 border-emerald-500/70 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.35)] transition hover:bg-emerald-900/80 active:scale-95"
+              title="Modo Administrador Ativo (Clique para abrir o painel)"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="font-mono-code font-bold text-[11px] hidden sm:inline">
-                ADMIN
+              <span className="font-mono-code font-bold text-[11px]">
+                PAINEL
               </span>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenAdmin}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-400/80 rounded-lg text-xs transition shadow-sm active:scale-95"
+              title="Abrir Painel de Controle (Senha: admin123 ou ALT+C)"
+            >
+              <Lock className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-[11px] font-semibold hidden sm:inline">Painel Admin</span>
             </button>
           )}
 
