@@ -1,0 +1,8 @@
+{
+  "name": "Remix Kisok_Game_Agimus",
+  "description": "Jogo eletrizante de acertar figuras no menor tempo de reação possível. Enfrente níveis crescentes de dificuldade, ganhe prêmios e troféus por desempenho e alcance o topo do ranking global.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

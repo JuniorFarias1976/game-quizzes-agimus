@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "Configurações globais do quiosque, identidade visual, logotipo da empresa e parâmetros de jogo.",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "companyLogoUrl": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "secondaryColor": { "type": "string" },
+        "backgroundColor": { "type": "string" },
+        "themePreset": { "type": "string" },
+        "registrationEnabled": { "type": "boolean" },
+        "registrationFields": { "type": "object" },
+        "customLevelConfigs": { "type": "object" },
+        "customTargetImage": { "type": "object" },
+        "lockEntireAppWithPassword": { "type": "boolean" },
+        "tournamentMode": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "Registration": {
+      "title": "Registration",
+      "description": "Ficha de inscrição do jogador no quiosque antes de iniciar a partida.",
+      "type": "object",
+      "properties": {
+        "playerName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "company": { "type": "string" },
+        "cargo": { "type": "string" },
+        "country": { "type": "string" },
+        "consentGiven": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "gamesPlayed": { "type": "number" },
+        "bestScore": { "type": "number" },
+        "bestReactionMs": { "type": "number" }
+      },
+      "required": ["playerName"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Registro oficial de pontuação e reflexo do jogador sincronizado na nuvem.",
+      "type": "object",
+      "properties": {
+        "playerName": { "type": "string" },
+        "country": { "type": "string" },
+        "avatar": { "type": "string" },
+        "score": { "type": "number" },
+        "averageReactionMs": { "type": "number" },
+        "bestReactionMs": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "levelId": { "type": "string" },
+        "tier": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["playerName", "score", "averageReactionMs"]
+    },
+    "SystemTest": {
+      "title": "SystemTest",
+      "description": "Documento de teste de conexão com o banco de dados.",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/settings/{settingId}": {
+      "schema": "AppSettings",
+      "description": "Armazena configurações globais do quiosque sincronizadas em tempo real."
+    },
+    "/registrations/{registrationId}": {
+      "schema": "Registration",
+      "description": "Armazena cadastros e leads dos jogadores preenchidos no quiosque."
+    },
+    "/leaderboard/{entryId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Armazena pontuações mundiais acessíveis por qualquer dispositivo."
+    },
+    "/system/{testId}": {
+      "schema": "SystemTest",
+      "description": "Coleção de diagnóstico do sistema."
+    }
+  }
+}
