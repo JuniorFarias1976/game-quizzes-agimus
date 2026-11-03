@@ -6,7 +6,10 @@
     background-color: #090d16;
     color: #f1f5f9;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
+    overscroll-behavior-y: none;
   }
 
   .font-display {

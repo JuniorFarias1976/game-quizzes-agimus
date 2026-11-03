@@ -112,7 +112,12 @@ export const Arena: React.FC<ArenaProps> = ({
   // Mouse coords for crosshair
   const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
   const [isHoveringArena, setIsHoveringArena] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [screenShake, setScreenShake] = useState(false);
+
+  useEffect(() => {
+    setIsTouchDevice('ontouchstart' in window || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0));
+  }, []);
 
   // Refs for tracking mutable loops
   const particlesRef = useRef<Particle[]>([]);
@@ -597,76 +602,104 @@ export const Arena: React.FC<ArenaProps> = ({
         x={mousePos.x}
         y={mousePos.y}
         type={crosshair}
-        visible={isHoveringArena && gameState === 'playing'}
+        visible={!isTouchDevice && isHoveringArena && gameState === 'playing'}
       />
 
-      {/* Top HUD Bar */}
-      <div className="w-full flex flex-wrap items-center justify-between gap-3 px-4 py-3 mb-3 bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl shadow-lg">
-        {/* Stage & Progress info */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center font-display font-bold text-indigo-400">
-            {level.id}
+      {/* Top HUD Bar - Responsive for Mobile & Desktop */}
+      <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 mb-2.5 sm:mb-3 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-xl shadow-lg">
+        {/* Stage & Progress info + Quick Mobile Controls */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center font-display font-bold text-xs sm:text-base text-indigo-400">
+              {level.id}
+            </div>
+            <div>
+              <div className="text-[11px] sm:text-xs font-semibold tracking-wider text-indigo-400 uppercase font-display">
+                {level.name}
+              </div>
+              <div className="text-[10px] sm:text-xs text-slate-400">
+                Alvos: <span className="text-white font-mono-code font-bold">{spawnedCount}/{level.targetCount}</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-indigo-400 uppercase font-display">
-              {level.name}
-            </div>
-            <div className="text-xs text-slate-400">
-              Alvos: <span className="text-white font-mono-code font-bold">{spawnedCount}/{level.targetCount}</span>
-            </div>
+
+          {/* Quick Controls shown on Mobile Header row */}
+          <div className="flex sm:hidden items-center gap-1.5">
+            {isAdminLoggedIn && onOpenControlPanel && (
+              <button
+                onClick={onOpenControlPanel}
+                className="flex items-center gap-1 px-2 py-1 text-slate-300 bg-slate-800/90 rounded-lg border border-cyan-500/30 text-[10px] font-mono-code font-bold"
+                title="Painel de Controle (Admin)"
+              >
+                <Sliders className="w-3 h-3 text-cyan-400" />
+                <span>ADM</span>
+              </button>
+            )}
+            <button
+              onClick={onToggleSound}
+              className="p-1.5 text-slate-400 hover:text-white bg-slate-800/80 rounded-lg"
+              title={soundEnabled ? 'Silenciar Áudio' : 'Ativar Áudio'}
+            >
+              {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-cyan-400" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
+            </button>
+            <button
+              onClick={onRestart}
+              className="p-1.5 text-slate-400 hover:text-white bg-slate-800/80 rounded-lg"
+              title="Reiniciar Fase"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        {/* Real-time Reflex Metrics */}
-        <div className="flex items-center gap-6">
+        {/* Real-time Reflex Metrics: 4 clean columns on mobile, row on tablet/desktop */}
+        <div className="grid grid-cols-4 sm:flex items-center gap-1.5 sm:gap-6 bg-slate-950/40 sm:bg-transparent p-1.5 sm:p-0 rounded-lg border border-slate-800/60 sm:border-0">
           {/* Reaction Speed Indicator */}
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-cyan-400" />
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-1 sm:gap-2">
+            <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" />
             <div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Último / Média</div>
-              <div className="font-mono-code text-sm font-bold text-white flex items-center gap-1.5">
+              <div className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Reação</div>
+              <div className="font-mono-code text-xs sm:text-sm font-bold text-white flex items-center justify-center sm:justify-start gap-1">
                 <span className={lastReactionMs && lastReactionMs < 250 ? 'text-cyan-400' : 'text-slate-200'}>
                   {lastReactionMs ? `${lastReactionMs}ms` : '--'}
                 </span>
-                <span className="text-slate-500">/</span>
-                <span className="text-emerald-400">{currentAvgMs > 0 ? `${currentAvgMs}ms` : '--'}</span>
               </div>
             </div>
           </div>
 
           {/* Combo Multiplier */}
-          <div className="flex items-center gap-2">
-            <Flame className={`w-4 h-4 ${combo > 3 ? 'text-amber-400 animate-bounce' : 'text-slate-500'}`} />
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-1 sm:gap-2">
+            <Flame className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${combo > 3 ? 'text-amber-400 animate-bounce' : 'text-slate-500'}`} />
             <div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Combo</div>
-              <div className="font-mono-code text-sm font-bold text-amber-400">
-                {combo}x <span className="text-[10px] text-amber-500 font-normal">({(1 + Math.min(combo * 0.1, 2.0)).toFixed(1)}x)</span>
+              <div className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Combo</div>
+              <div className="font-mono-code text-xs sm:text-sm font-bold text-amber-400">
+                {combo}x
               </div>
             </div>
           </div>
 
           {/* Accuracy */}
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-emerald-400" />
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-1 sm:gap-2">
+            <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
             <div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Precisão</div>
-              <div className="font-mono-code text-sm font-bold text-emerald-400">
+              <div className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Precisão</div>
+              <div className="font-mono-code text-xs sm:text-sm font-bold text-emerald-400">
                 {currentAccuracy}%
               </div>
             </div>
           </div>
 
           {/* Score */}
-          <div className="px-3 py-1 bg-slate-950/70 border border-slate-700/60 rounded-lg">
-            <div className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Pontos</div>
-            <div className="font-display text-base font-bold text-white tracking-wide">
+          <div className="px-2 sm:px-3 py-0.5 sm:py-1 bg-slate-950/70 border border-slate-700/60 rounded-lg text-center sm:text-left">
+            <div className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Pontos</div>
+            <div className="font-display text-xs sm:text-base font-bold text-white tracking-wide">
               {score.toLocaleString()}
             </div>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2">
+        {/* Action Controls for Desktop */}
+        <div className="hidden sm:flex items-center gap-2">
           {isAdminLoggedIn && onOpenControlPanel && (
             <button
               onClick={onOpenControlPanel}
@@ -695,13 +728,18 @@ export const Arena: React.FC<ArenaProps> = ({
         </div>
       </div>
 
-      {/* Main Interactive Arena Area */}
+      {/* Main Interactive Arena Area - responsive height and touch-none for mobile */}
       <div
         ref={arenaRef}
         onClick={handleArenaMiss}
+        onPointerDown={(e) => {
+          if (e.target === arenaRef.current || (e.target as HTMLElement).tagName === 'CANVAS') {
+            handleArenaMiss(e as unknown as React.MouseEvent);
+          }
+        }}
         onMouseEnter={() => setIsHoveringArena(true)}
         onMouseLeave={() => setIsHoveringArena(false)}
-        className={`relative w-full h-[520px] bg-gradient-to-b from-[#0a0f1d] via-[#070b14] to-[#04070e] border-2 rounded-2xl overflow-hidden select-none cursor-crosshair shadow-2xl transition-transform ${
+        className={`relative w-full h-[58vh] min-h-[360px] sm:h-[520px] max-h-[640px] bg-gradient-to-b from-[#0a0f1d] via-[#070b14] to-[#04070e] border-2 rounded-2xl overflow-hidden select-none cursor-crosshair shadow-2xl transition-transform touch-none overscroll-none ${
           screenShake ? 'scale-[0.98] border-red-500 translate-x-1 translate-y-1' : 'border-indigo-500/20'
         }`}
       >

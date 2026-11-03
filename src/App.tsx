@@ -34,6 +34,7 @@ import {
   saveAdminSettings 
 } from './utils/adminStorage';
 import { 
+  fetchCloudSettings,
   subscribeToCloudSettings, 
   saveAdminSettingsToCloud, 
   subscribeToCloudLeaderboard, 
@@ -127,6 +128,13 @@ export default function App() {
 
   // 1. Subscribe to Cloud Settings for Real-Time Multi-Device Sync
   useEffect(() => {
+    // Immediate fetch to guarantee current cloud data loads in any new browser immediately
+    fetchCloudSettings().then((cloudSettings) => {
+      if (cloudSettings) {
+        setAdminSettings(cloudSettings);
+      }
+    });
+
     const unsubscribe = subscribeToCloudSettings((cloudSettings) => {
       setAdminSettings(cloudSettings);
     });
@@ -192,8 +200,18 @@ export default function App() {
 
   const handleSaveAdminSettings = async (newSettings: AppAdminSettings) => {
     setAdminSettings(newSettings);
-    await saveAdminSettingsToCloud(newSettings);
+    const result = await saveAdminSettingsToCloud(newSettings);
     setArenaKey((k) => k + 1);
+    return result;
+  };
+
+  const handleForceSyncCloud = async () => {
+    const cloudSettings = await fetchCloudSettings();
+    if (cloudSettings) {
+      setAdminSettings(cloudSettings);
+      return true;
+    }
+    return false;
   };
 
   // Registration Handlers
@@ -791,6 +809,7 @@ export default function App() {
         registrations={registrations}
         onDeleteRegistration={handleDeleteRegistration}
         onClearRegistrations={handleClearRegistrations}
+        onForceSyncCloud={handleForceSyncCloud}
       />
       </div>
     </div>

@@ -223,10 +223,27 @@ export const TargetFigure: React.FC<TargetFigureProps> = ({
     }
   };
 
+  const [hasBeenHit, setHasBeenHit] = useState(false);
+
+  const handleTriggerHit = (e: React.MouseEvent | React.PointerEvent) => {
+    e.stopPropagation();
+    if (hasBeenHit) return;
+    setHasBeenHit(true);
+    onClick(figure, e as React.MouseEvent);
+  };
+
   return (
     <div
-      onClick={(e) => onClick(figure, e)}
-      className="absolute cursor-pointer transition-transform duration-75 active:scale-90 select-none group"
+      onPointerDown={handleTriggerHit}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!hasBeenHit) {
+          handleTriggerHit(e);
+        }
+      }}
+      className={`absolute cursor-pointer transition-transform duration-75 select-none group touch-manipulation ${
+        hasBeenHit ? 'opacity-0 scale-50 pointer-events-none' : 'active:scale-90 hover:scale-105'
+      }`}
       style={{
         left: `${figure.x}%`,
         top: `${figure.y}%`,
@@ -234,6 +251,7 @@ export const TargetFigure: React.FC<TargetFigureProps> = ({
         height: `${figure.size}px`,
         transform: 'translate(-50%, -50%)',
         zIndex: figure.isTrap ? 25 : 20,
+        touchAction: 'manipulation',
       }}
     >
       {/* Depleting Circular Timer Progress Gauge */}

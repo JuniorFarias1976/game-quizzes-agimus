@@ -31,31 +31,33 @@ import {
   EyeOff, 
   Upload, 
   Link as LinkIcon, 
-  AlertTriangle,
-  Sparkles,
-  Palette,
-  Users,
-  Download,
-  Building,
-  Mail,
-  Phone,
-  Briefcase,
-  FileSpreadsheet,
-  CheckCircle2,
-  Award,
-  CircleDot,
-  Grid,
-  Layout,
-  Star,
-  Plus
+  AlertTriangle, 
+  Sparkles, 
+  Palette, 
+  Users, 
+  Download, 
+  Building, 
+  Mail, 
+  Phone, 
+  Briefcase, 
+  FileSpreadsheet, 
+  CheckCircle2, 
+  Award, 
+  CircleDot, 
+  Grid, 
+  Layout, 
+  Star, 
+  Plus,
+  RefreshCw
 } from 'lucide-react';
+import { readAndCompressImageFile } from '../utils/imageOptimizer';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
   adminSettings: AppAdminSettings;
-  onSaveAdminSettings: (settings: AppAdminSettings) => void;
+  onSaveAdminSettings: (settings: AppAdminSettings) => Promise<{ success: boolean; error?: string } | void> | void;
   leaderboardEntries: LeaderboardEntry[];
   onDeleteLeaderboardEntry: (id: string) => void;
   onClearLeaderboard: () => void;
@@ -63,6 +65,7 @@ interface AdminDashboardModalProps {
   registrations?: PlayerRegistration[];
   onDeleteRegistration?: (id: string) => void;
   onClearRegistrations?: () => void;
+  onForceSyncCloud?: () => Promise<boolean>;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
@@ -78,6 +81,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   registrations = [],
   onDeleteRegistration,
   onClearRegistrations,
+  onForceSyncCloud,
 }) => {
   const [activeTab, setActiveTab] = useState<'branding' | 'registration' | 'levels' | 'image' | 'endgame' | 'leaderboard' | 'security'>('branding');
   const [settingsDraft, setSettingsDraft] = useState<AppAdminSettings>(adminSettings);
@@ -121,9 +125,40 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setTimeout(() => setNotification(null), 3500);
   };
 
-  const handleSaveAll = () => {
-    onSaveAdminSettings(settingsDraft);
-    showToast('Configurações salvas e sincronizadas na nuvem em tempo real!');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSaveAll = async () => {
+    setIsSaving(true);
+    try {
+      const result = await onSaveAdminSettings(settingsDraft);
+      if (result && typeof result === 'object' && result.success === false) {
+        showToast(`Salvo localmente, mas aviso da nuvem: ${result.error}`);
+      } else {
+        showToast('✓ Configurações salvas e sincronizadas na nuvem em tempo real!');
+      }
+    } catch {
+      showToast('✓ Configurações salvas!');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleForceSync = async () => {
+    if (!onForceSyncCloud) return;
+    setIsSyncing(true);
+    try {
+      const ok = await onForceSyncCloud();
+      if (ok) {
+        showToast('✓ Dados mais recentes recarregados da nuvem!');
+      } else {
+        showToast('Nuvem sincronizada ou sem novos dados.');
+      }
+    } catch {
+      showToast('Erro ao sincronizar com a nuvem.');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Preset theme selector
@@ -205,13 +240,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   // File upload for admin custom image
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
+    try {
+      const result = await readAndCompressImageFile(file, { maxWidth: 320, maxHeight: 320, quality: 0.82 });
       if (result) {
         setSettingsDraft((prev) => ({
           ...prev,
@@ -222,10 +256,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             imageName: file.name,
           },
         }));
-        showToast('Imagem carregada pelo administrador!');
+        showToast('Imagem carregada e otimizada pelo administrador!');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      showToast('Erro ao processar imagem.');
+    }
   };
 
   const handleApplyUrl = () => {
@@ -254,12 +289,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   // App Background Upload & URL handlers
-  const handleBgFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBgFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
+    try {
+      const result = await readAndCompressImageFile(file, { maxWidth: 1280, maxHeight: 800, quality: 0.75 });
       if (result) {
         setSettingsDraft((prev) => ({
           ...prev,
@@ -269,10 +303,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             backgroundPattern: 'image',
           },
         }));
-        showToast('Imagem de fundo do aplicativo carregada com sucesso!');
+        showToast('Imagem de fundo do aplicativo carregada e otimizada!');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      showToast('Erro ao carregar imagem de fundo.');
+    }
   };
 
   const handleApplyBgUrl = () => {
@@ -307,12 +342,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   // Multi-Target Images Handlers
-  const handleAddTargetImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddTargetImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
+    try {
+      const result = await readAndCompressImageFile(file, { maxWidth: 320, maxHeight: 320, quality: 0.82 });
       if (result) {
         setSettingsDraft((prev) => {
           const currentList = prev.customTargetImage.images || (prev.customTargetImage.imageUrl ? [prev.customTargetImage.imageUrl] : []);
@@ -328,10 +362,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             },
           };
         });
-        showToast('Nova imagem adicionada à galeria de alvos!');
+        showToast('Nova imagem otimizada adicionada aos alvos!');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      showToast('Erro ao processar imagem de alvo.');
+    }
   };
 
   const handleAddTargetImageUrl = () => {
@@ -409,13 +444,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   // Logo file upload handler
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
+    try {
+      const result = await readAndCompressImageFile(file, { maxWidth: 400, maxHeight: 180, quality: 0.85, mimeType: 'image/png' });
       if (result) {
         setSettingsDraft((prev) => ({
           ...prev,
@@ -425,10 +459,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             logoUrl: result,
           },
         }));
-        showToast('Logotipo da empresa carregado!');
+        showToast('Logotipo da empresa carregado e otimizado!');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      showToast('Erro ao processar logotipo.');
+    }
   };
 
   const handleApplyLogoUrl = () => {
@@ -451,7 +486,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   };
 
   // End Game image handlers
-  const handleEndGameFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEndGameFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -460,27 +495,23 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       return;
     }
 
-    if (file.size > 4 * 1024 * 1024) {
-      showToast('Imagem muito grande (máximo 4MB recomendado).');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
+    try {
+      const result = await readAndCompressImageFile(file, { maxWidth: 640, maxHeight: 480, quality: 0.8 });
+      if (result) {
         setSettingsDraft((prev) => ({
           ...prev,
           endGameImage: {
             ...prev.endGameImage,
             enabled: true,
-            imageUrl: reader.result as string,
+            imageUrl: result,
             imageName: file.name,
           },
         }));
-        showToast('Imagem de fim de jogo carregada!');
+        showToast('Imagem de fim de jogo carregada e otimizada!');
       }
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      showToast('Erro ao processar imagem de fim de jogo.');
+    }
   };
 
   const handleApplyEndGameUrl = () => {
@@ -561,16 +592,30 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {onForceSyncCloud && (
+              <button
+                type="button"
+                onClick={handleForceSync}
+                disabled={isSyncing}
+                className="px-3 py-2 flex items-center gap-1.5 text-xs font-semibold text-cyan-300 hover:text-white bg-cyan-950/70 hover:bg-cyan-900 border border-cyan-800 rounded-lg transition"
+                title="Recarregar dados mais recentes da nuvem"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isSyncing ? 'Buscando...' : 'Recarregar Nuvem'}</span>
+              </button>
+            )}
+
             <button
               onClick={handleSaveAll}
-              className="px-4 py-2 flex items-center gap-1.5 text-xs font-bold text-white rounded-lg transition shadow-md active:scale-95"
+              disabled={isSaving}
+              className="px-4 py-2 flex items-center gap-1.5 text-xs font-bold text-white rounded-lg transition shadow-md active:scale-95 disabled:opacity-60 cursor-pointer"
               style={{
                 backgroundColor: settingsDraft.branding.primaryColor,
                 boxShadow: `0 0 15px ${settingsDraft.branding.primaryColor}55`,
               }}
             >
               <Save className="w-3.5 h-3.5 text-slate-950" />
-              <span className="text-slate-950 font-bold">Salvar na Nuvem</span>
+              <span className="text-slate-950 font-bold">{isSaving ? 'Salvando...' : 'Salvar na Nuvem'}</span>
             </button>
 
             <button
