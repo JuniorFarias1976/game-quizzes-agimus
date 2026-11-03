@@ -159,15 +159,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const endGameFileInputRef = useRef<HTMLInputElement>(null);
   const [endGameUrlInput, setEndGameUrlInput] = useState('');
 
+  // Saving and syncing states
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
   if (!isOpen) return null;
 
   const showToast = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3500);
   };
-
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   const handleSaveAll = async () => {
     setIsSaving(true);
