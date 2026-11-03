@@ -293,9 +293,10 @@ export default function App() {
   const effectiveLevels = getMergedLevels(adminSettings.customLevelConfigs);
   const currentLevel = effectiveLevels.find((l) => l.id === currentLevelId) || effectiveLevels[0];
 
-  // Determine effective target image (Admin mandatory image takes precedence if enabled)
+  // Determine effective target image (Admin target image settings take precedence when enabled)
   const effectiveCustomImage: CustomTargetImageConfig = 
-    adminSettings.customImageMandatory && adminSettings.customTargetImage.enabled && adminSettings.customTargetImage.imageUrl
+    adminSettings.customTargetImage.enabled && 
+    (adminSettings.customTargetImage.imageUrl || (adminSettings.customTargetImage.images && adminSettings.customTargetImage.images.length > 0))
       ? adminSettings.customTargetImage
       : customImage;
 
@@ -499,15 +500,50 @@ export default function App() {
 
   return (
     <div 
-      className="min-h-screen text-slate-100 flex flex-col font-sans transition-colors duration-300 selection:bg-cyan-500 selection:text-black"
+      className="min-h-screen text-slate-100 flex flex-col font-sans transition-colors duration-300 selection:bg-cyan-500 selection:text-black relative"
       style={{
         backgroundColor: bgColor,
         ['--theme-primary' as string]: primaryColor,
         ['--theme-secondary' as string]: secondaryColor,
       }}
     >
-      {/* Navbar with dynamic logo and colors */}
-      <Navbar
+      {/* Dynamic Background Pattern / Custom Image Layer */}
+      {adminSettings.branding.backgroundImageUrl ? (
+        <div 
+          className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center transition-opacity"
+          style={{
+            backgroundImage: `url(${adminSettings.branding.backgroundImageUrl})`,
+            opacity: adminSettings.branding.backgroundImageOpacity ?? 0.25,
+          }}
+        />
+      ) : adminSettings.branding.backgroundPattern === 'grid' ? (
+        <div 
+          className="fixed inset-0 pointer-events-none z-0 opacity-15"
+          style={{
+            backgroundImage: `linear-gradient(to right, ${primaryColor}22 1px, transparent 1px), linear-gradient(to bottom, ${primaryColor}22 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+          }}
+        />
+      ) : adminSettings.branding.backgroundPattern === 'dots' ? (
+        <div 
+          className="fixed inset-0 pointer-events-none z-0 opacity-20"
+          style={{
+            backgroundImage: `radial-gradient(${primaryColor}44 1.5px, transparent 1.5px)`,
+            backgroundSize: '28px 28px',
+          }}
+        />
+      ) : adminSettings.branding.backgroundPattern === 'radial' ? (
+        <div 
+          className="fixed inset-0 pointer-events-none z-0 opacity-25"
+          style={{
+            background: `radial-gradient(circle at 50% 15%, ${primaryColor}33 0%, ${secondaryColor}20 40%, transparent 75%)`,
+          }}
+        />
+      ) : null}
+
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Navbar with dynamic logo and colors */}
+        <Navbar
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         stats={playerStats}
@@ -756,6 +792,7 @@ export default function App() {
         onDeleteRegistration={handleDeleteRegistration}
         onClearRegistrations={handleClearRegistrations}
       />
+      </div>
     </div>
   );
 }

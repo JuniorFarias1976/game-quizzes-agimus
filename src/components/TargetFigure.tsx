@@ -60,8 +60,10 @@ export const TargetFigure: React.FC<TargetFigureProps> = ({
       );
     }
 
+    const activeTargetImageUrl = figure.targetImageUrl || (customImage?.enabled ? customImage.imageUrl : undefined);
+
     // Custom Target Image requested by user
-    if (customImage?.enabled && customImage.imageUrl) {
+    if (customImage?.enabled && activeTargetImageUrl) {
       return (
         <div 
           className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center border-2 transition-transform hover:scale-105"
@@ -74,7 +76,7 @@ export const TargetFigure: React.FC<TargetFigureProps> = ({
           }}
         >
           <img
-            src={customImage.imageUrl}
+            src={activeTargetImageUrl}
             alt="Alvo Personalizado"
             className={`w-full h-full ${customImage.shapeFit === 'contain' ? 'object-contain p-1' : 'object-cover'} pointer-events-none select-none`}
             loading="eager"

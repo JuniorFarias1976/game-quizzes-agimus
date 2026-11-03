@@ -21,6 +21,8 @@ export interface CustomTargetImageConfig {
   imageName?: string;
   shapeFit: 'cover' | 'contain';
   customBorderColor: string;
+  images?: string[]; // Multiple target images pool
+  randomizeImages?: boolean; // When multiple images exist, alternate among them
 }
 
 export interface DevControlOverrides {
@@ -38,6 +40,11 @@ export interface BrandingColorsConfig {
   primaryColor: string; // e.g. '#00d2ff' or '#0284c7'
   secondaryColor: string; // e.g. '#6366f1'
   backgroundColor: string; // e.g. '#090d16'
+  headerBackgroundColor?: string; // e.g. '#070c18'
+  headerStyle?: 'glass' | 'solid' | 'gradient';
+  backgroundPattern?: 'grid' | 'dots' | 'radial' | 'plain' | 'image';
+  backgroundImageUrl?: string; // custom background image URL or base64
+  backgroundImageOpacity?: number; // 0.05 to 1.0 (default 0.25)
   themePreset: 'agimus_blue' | 'cyberpunk' | 'emerald_tech' | 'sunset' | 'crimson' | 'custom';
 }
 
@@ -117,6 +124,7 @@ export interface TargetFigureData {
   vx?: number; // drift speed x
   vy?: number; // drift speed y
   flicker?: boolean;
+  targetImageUrl?: string;
 }
 
 export interface LevelConfig {

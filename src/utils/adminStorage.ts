@@ -12,6 +12,8 @@ export const DEFAULT_ADMIN_SETTINGS: AppAdminSettings = {
     imageUrl: '',
     shapeFit: 'cover',
     customBorderColor: '#00d2ff',
+    images: [],
+    randomizeImages: true,
   },
   endGameImage: {
     enabled: true,
@@ -28,6 +30,11 @@ export const DEFAULT_ADMIN_SETTINGS: AppAdminSettings = {
     primaryColor: '#00d2ff',
     secondaryColor: '#0284c7',
     backgroundColor: '#070c18',
+    headerBackgroundColor: '#060a14',
+    headerStyle: 'glass',
+    backgroundPattern: 'grid',
+    backgroundImageUrl: '',
+    backgroundImageOpacity: 0.25,
     themePreset: 'agimus_blue',
   },
   logo: {

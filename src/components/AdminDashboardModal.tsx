@@ -11,7 +11,7 @@ import {
 } from '../types/game';
 import { LEVELS } from '../utils/levels';
 import { updateAdminPassword } from '../utils/adminStorage';
-import { THEME_PRESETS } from '../utils/brandingPresets';
+import { THEME_PRESETS, TARGET_PRESET_IMAGES } from '../utils/brandingPresets';
 import { 
   ShieldCheck, 
   Settings, 
@@ -42,7 +42,12 @@ import {
   Briefcase,
   FileSpreadsheet,
   CheckCircle2,
-  Award
+  Award,
+  CircleDot,
+  Grid,
+  Layout,
+  Star,
+  Plus
 } from 'lucide-react';
 
 interface AdminDashboardModalProps {
@@ -91,13 +96,19 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [showPasswords, setShowPasswords] = useState(false);
 
-  // Target image file input
+  // Target image file input & multiple target images pool
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const targetImageFileInputRef = useRef<HTMLInputElement>(null);
   const [urlInput, setUrlInput] = useState('');
+  const [targetImageUrlInput, setTargetImageUrlInput] = useState('');
 
   // Logo file input
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [logoUrlInput, setLogoUrlInput] = useState('');
+
+  // App Background file input & URL
+  const bgFileInputRef = useRef<HTMLInputElement>(null);
+  const [bgUrlInput, setBgUrlInput] = useState('');
 
   // End Game image file input
   const endGameFileInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +138,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         primaryColor: preset.primary,
         secondaryColor: preset.secondary,
         backgroundColor: preset.background,
+        headerBackgroundColor: preset.headerBackground || preset.background,
       },
     }));
     showToast(`Tema visual "${preset.name}" aplicado!`);
@@ -220,20 +232,180 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     if (!urlInput.trim()) return;
     try {
       new URL(urlInput);
-      setSettingsDraft((prev) => ({
-        ...prev,
-        customTargetImage: {
-          ...prev.customTargetImage,
-          enabled: true,
-          imageUrl: urlInput.trim(),
-          imageName: 'Imagem da Web (Admin)',
-        },
-      }));
+      setSettingsDraft((prev) => {
+        const currentList = prev.customTargetImage.images || (prev.customTargetImage.imageUrl ? [prev.customTargetImage.imageUrl] : []);
+        const updatedImages = currentList.includes(urlInput.trim()) ? currentList : [...currentList, urlInput.trim()];
+        return {
+          ...prev,
+          customTargetImage: {
+            ...prev.customTargetImage,
+            enabled: true,
+            imageUrl: urlInput.trim(),
+            images: updatedImages,
+            imageName: 'Imagem da Web (Admin)',
+          },
+        };
+      });
       setUrlInput('');
       showToast('URL de imagem aplicada pelo administrador!');
     } catch {
       showToast('URL inválida.');
     }
+  };
+
+  // App Background Upload & URL handlers
+  const handleBgFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setSettingsDraft((prev) => ({
+          ...prev,
+          branding: {
+            ...prev.branding,
+            backgroundImageUrl: result,
+            backgroundPattern: 'image',
+          },
+        }));
+        showToast('Imagem de fundo do aplicativo carregada com sucesso!');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleApplyBgUrl = () => {
+    if (!bgUrlInput.trim()) return;
+    try {
+      new URL(bgUrlInput);
+      setSettingsDraft((prev) => ({
+        ...prev,
+        branding: {
+          ...prev.branding,
+          backgroundImageUrl: bgUrlInput.trim(),
+          backgroundPattern: 'image',
+        },
+      }));
+      setBgUrlInput('');
+      showToast('URL da imagem de fundo aplicada com sucesso!');
+    } catch {
+      showToast('URL de imagem inválida.');
+    }
+  };
+
+  const handleRemoveBgImage = () => {
+    setSettingsDraft((prev) => ({
+      ...prev,
+      branding: {
+        ...prev.branding,
+        backgroundImageUrl: '',
+        backgroundPattern: prev.branding.backgroundPattern === 'image' ? 'grid' : prev.branding.backgroundPattern,
+      },
+    }));
+    showToast('Imagem de fundo removida.');
+  };
+
+  // Multi-Target Images Handlers
+  const handleAddTargetImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setSettingsDraft((prev) => {
+          const currentList = prev.customTargetImage.images || (prev.customTargetImage.imageUrl ? [prev.customTargetImage.imageUrl] : []);
+          const updated = [...currentList, result];
+          return {
+            ...prev,
+            customTargetImage: {
+              ...prev.customTargetImage,
+              enabled: true,
+              imageUrl: prev.customTargetImage.imageUrl || result,
+              images: updated,
+              imageName: file.name,
+            },
+          };
+        });
+        showToast('Nova imagem adicionada à galeria de alvos!');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddTargetImageUrl = () => {
+    if (!targetImageUrlInput.trim()) return;
+    try {
+      new URL(targetImageUrlInput);
+      setSettingsDraft((prev) => {
+        const currentList = prev.customTargetImage.images || (prev.customTargetImage.imageUrl ? [prev.customTargetImage.imageUrl] : []);
+        const updated = [...currentList, targetImageUrlInput.trim()];
+        return {
+          ...prev,
+          customTargetImage: {
+            ...prev.customTargetImage,
+            enabled: true,
+            imageUrl: prev.customTargetImage.imageUrl || targetImageUrlInput.trim(),
+            images: updated,
+          },
+        };
+      });
+      setTargetImageUrlInput('');
+      showToast('Imagem adicionada aos alvos pelo link!');
+    } catch {
+      showToast('URL de imagem inválida.');
+    }
+  };
+
+  const handleAddPresetTargetImage = (presetUrl: string, presetName: string) => {
+    setSettingsDraft((prev) => {
+      const currentList = prev.customTargetImage.images || (prev.customTargetImage.imageUrl ? [prev.customTargetImage.imageUrl] : []);
+      const updated = currentList.includes(presetUrl) ? currentList : [...currentList, presetUrl];
+      return {
+        ...prev,
+        customTargetImage: {
+          ...prev.customTargetImage,
+          enabled: true,
+          imageUrl: presetUrl,
+          images: updated,
+          imageName: presetName,
+        },
+      };
+    });
+    showToast(`Alvo "${presetName}" ativado na galeria!`);
+  };
+
+  const handleRemoveTargetImage = (imgUrl: string) => {
+    setSettingsDraft((prev) => {
+      const currentList = prev.customTargetImage.images || (prev.customTargetImage.imageUrl ? [prev.customTargetImage.imageUrl] : []);
+      const updated = currentList.filter((img) => img !== imgUrl);
+      const newPrimary = prev.customTargetImage.imageUrl === imgUrl
+        ? updated[0] || ''
+        : prev.customTargetImage.imageUrl;
+      return {
+        ...prev,
+        customTargetImage: {
+          ...prev.customTargetImage,
+          imageUrl: newPrimary,
+          images: updated,
+          enabled: updated.length > 0 || Boolean(newPrimary),
+        },
+      };
+    });
+    showToast('Imagem de alvo removida da lista.');
+  };
+
+  const handleSetPrimaryTargetImage = (imgUrl: string) => {
+    setSettingsDraft((prev) => ({
+      ...prev,
+      customTargetImage: {
+        ...prev.customTargetImage,
+        enabled: true,
+        imageUrl: imgUrl,
+      },
+    }));
+    showToast('Imagem definida como alvo principal!');
   };
 
   // Logo file upload handler
@@ -473,7 +645,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             }`}
           >
             <ImageIcon className="w-4 h-4" />
-            <span>Imagem do Alvo</span>
+            <span>Imagens dos Alvos</span>
           </button>
 
           <button
@@ -590,7 +762,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   Cores Personalizadas (Hexadecimal)
                 </h4>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Primary Color */}
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">
@@ -669,7 +841,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Background Color */}
+                  {/* App Background Color */}
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">
                       Cor de Fundo da Aplicação:
@@ -707,6 +879,384 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       />
                     </div>
                   </div>
+
+                  {/* Header Background Color */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">
+                      Cor de Fundo do Cabeçalho:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={settingsDraft.branding.headerBackgroundColor || '#060a14'}
+                        onChange={(e) =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            branding: {
+                              ...prev.branding,
+                              headerBackgroundColor: e.target.value,
+                              themePreset: 'custom',
+                            },
+                          }))
+                        }
+                        className="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0"
+                      />
+                      <input
+                        type="text"
+                        value={settingsDraft.branding.headerBackgroundColor || '#060a14'}
+                        onChange={(e) =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            branding: {
+                              ...prev.branding,
+                              headerBackgroundColor: e.target.value,
+                              themePreset: 'custom',
+                            },
+                          }))
+                        }
+                        className="w-full px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white font-mono-code"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* HEADER CUSTOMIZATION SECTION */}
+              <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Layout className="w-4 h-4 text-cyan-400" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider font-display">
+                      Personalização do Cabeçalho (Barra Superior / Topo)
+                    </h4>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        branding: { ...prev.branding, headerStyle: 'glass' },
+                      }))
+                    }
+                    className={`p-3 rounded-xl border text-left transition ${
+                      settingsDraft.branding.headerStyle === 'glass' || !settingsDraft.branding.headerStyle
+                        ? 'border-cyan-400 bg-cyan-950/30'
+                        : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>Translúcido com Desfoque</span>
+                      {(settingsDraft.branding.headerStyle === 'glass' || !settingsDraft.branding.headerStyle) && (
+                        <Check className="w-3.5 h-3.5 text-cyan-400" />
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1">
+                      Glassmorphism com efeito blur e transparência moderna.
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        branding: { ...prev.branding, headerStyle: 'solid' },
+                      }))
+                    }
+                    className={`p-3 rounded-xl border text-left transition ${
+                      settingsDraft.branding.headerStyle === 'solid'
+                        ? 'border-cyan-400 bg-cyan-950/30'
+                        : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>Cor Sólida Opaca</span>
+                      {settingsDraft.branding.headerStyle === 'solid' && (
+                        <Check className="w-3.5 h-3.5 text-cyan-400" />
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1">
+                      Fundo 100% preenchido pela cor selecionada.
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        branding: { ...prev.branding, headerStyle: 'gradient' },
+                      }))
+                    }
+                    className={`p-3 rounded-xl border text-left transition ${
+                      settingsDraft.branding.headerStyle === 'gradient'
+                        ? 'border-cyan-400 bg-cyan-950/30'
+                        : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>Gradiente Fluido Neon</span>
+                      {settingsDraft.branding.headerStyle === 'gradient' && (
+                        <Check className="w-3.5 h-3.5 text-cyan-400" />
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1">
+                      Mistura fluida com a cor primária de destaque.
+                    </div>
+                  </button>
+                </div>
+
+                {/* Live Header Preview */}
+                <div className="pt-2">
+                  <div className="text-[11px] text-slate-400 mb-1.5 font-semibold">Pré-visualização do Cabeçalho:</div>
+                  <div
+                    className="p-3.5 rounded-xl border flex items-center justify-between transition-colors shadow-inner"
+                    style={{
+                      borderBottomColor: `${settingsDraft.branding.primaryColor}55`,
+                      ...(settingsDraft.branding.headerStyle === 'solid'
+                        ? { backgroundColor: settingsDraft.branding.headerBackgroundColor || '#060a14' }
+                        : settingsDraft.branding.headerStyle === 'gradient'
+                        ? {
+                            background: `linear-gradient(to right, ${
+                              settingsDraft.branding.headerBackgroundColor || '#060a14'
+                            }, ${settingsDraft.branding.primaryColor}30, ${
+                              settingsDraft.branding.headerBackgroundColor || '#060a14'
+                            })`,
+                          }
+                        : {
+                            backgroundColor: `${settingsDraft.branding.headerBackgroundColor || '#060a14'}e6`,
+                            backdropFilter: 'blur(8px)',
+                          }),
+                    }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {settingsDraft.logo.enabled && settingsDraft.logo.logoUrl ? (
+                        <img
+                          src={settingsDraft.logo.logoUrl}
+                          alt="Logo"
+                          className="h-8 max-w-[100px] object-contain rounded"
+                        />
+                      ) : (
+                        <div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center font-display font-black text-slate-950 text-xs shadow"
+                          style={{ backgroundColor: settingsDraft.branding.primaryColor }}
+                        >
+                          {settingsDraft.logo.companyName ? settingsDraft.logo.companyName.charAt(0) : 'A'}
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-xs font-display font-black text-white">
+                          {settingsDraft.logo.companyName || 'AGIMUS'}
+                        </div>
+                        <div className="text-[9px] text-slate-400 font-mono-code">
+                          {settingsDraft.logo.subTitle || 'QUIOSQUE DE REAÇÃO RÁPIDA'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="px-2.5 py-1 rounded text-[10px] font-bold text-slate-950"
+                        style={{ backgroundColor: settingsDraft.branding.primaryColor }}
+                      >
+                        Jogar
+                      </span>
+                      <span className="px-2.5 py-1 rounded text-[10px] font-semibold text-slate-400 bg-slate-900 border border-slate-800">
+                        Ranking
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* APPLICATION BACKGROUND SECTION */}
+              <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Grid className="w-4 h-4 text-cyan-400" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider font-display">
+                      Fundo do Aplicativo (Padrão Visual & Imagem de Fundo)
+                    </h4>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        branding: { ...prev.branding, backgroundPattern: 'grid', backgroundImageUrl: '' },
+                      }))
+                    }
+                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition ${
+                      settingsDraft.branding.backgroundPattern === 'grid' && !settingsDraft.branding.backgroundImageUrl
+                        ? 'border-cyan-400 bg-cyan-950/40 text-cyan-300 font-bold'
+                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Grid className="w-5 h-5 text-cyan-400" />
+                    <span>Grelha Sci-Fi</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        branding: { ...prev.branding, backgroundPattern: 'dots', backgroundImageUrl: '' },
+                      }))
+                    }
+                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition ${
+                      settingsDraft.branding.backgroundPattern === 'dots' && !settingsDraft.branding.backgroundImageUrl
+                        ? 'border-cyan-400 bg-cyan-950/40 text-cyan-300 font-bold'
+                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <CircleDot className="w-5 h-5 text-purple-400" />
+                    <span>Pontos Tech</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        branding: { ...prev.branding, backgroundPattern: 'radial', backgroundImageUrl: '' },
+                      }))
+                    }
+                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition ${
+                      settingsDraft.branding.backgroundPattern === 'radial' && !settingsDraft.branding.backgroundImageUrl
+                        ? 'border-cyan-400 bg-cyan-950/40 text-cyan-300 font-bold'
+                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Sparkles className="w-5 h-5 text-amber-400" />
+                    <span>Brilho Aurora</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        branding: { ...prev.branding, backgroundPattern: 'plain', backgroundImageUrl: '' },
+                      }))
+                    }
+                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition ${
+                      settingsDraft.branding.backgroundPattern === 'plain' && !settingsDraft.branding.backgroundImageUrl
+                        ? 'border-cyan-400 bg-cyan-950/40 text-cyan-300 font-bold'
+                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="w-5 h-5 rounded-md border border-slate-700 bg-slate-950" />
+                    <span>Sólido Limpo</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        branding: { ...prev.branding, backgroundPattern: 'image' },
+                      }))
+                    }
+                    className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 transition ${
+                      settingsDraft.branding.backgroundPattern === 'image' || Boolean(settingsDraft.branding.backgroundImageUrl)
+                        ? 'border-cyan-400 bg-cyan-950/40 text-cyan-300 font-bold'
+                        : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Upload className="w-5 h-5 text-emerald-400" />
+                    <span>Foto / Imagem</span>
+                  </button>
+                </div>
+
+                {/* Upload or URL for Custom Background Image */}
+                <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Imagem de Fundo Personalizada</span>
+                    </span>
+
+                    {settingsDraft.branding.backgroundImageUrl && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveBgImage}
+                        className="text-xs text-rose-400 hover:underline flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Remover Imagem de Fundo</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      ref={bgFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBgFileUpload}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => bgFileInputRef.current?.click()}
+                      className="px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg flex items-center gap-1.5 transition"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Upload do Computador</span>
+                    </button>
+
+                    <div className="flex-1 flex gap-2 min-w-[200px]">
+                      <input
+                        type="text"
+                        value={bgUrlInput}
+                        onChange={(e) => setBgUrlInput(e.target.value)}
+                        placeholder="Ou cole a URL da imagem (https://...)"
+                        className="flex-1 px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyBgUrl}
+                        className="px-3 py-1.5 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition"
+                      >
+                        Aplicar
+                      </button>
+                    </div>
+                  </div>
+
+                  {settingsDraft.branding.backgroundImageUrl && (
+                    <div className="pt-2 border-t border-slate-800/80 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-slate-300">
+                        <span>Opacidade da Imagem de Fundo:</span>
+                        <span className="font-mono-code font-bold text-cyan-400">
+                          {Math.round((settingsDraft.branding.backgroundImageOpacity ?? 0.25) * 100)}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.05"
+                        max="1"
+                        step="0.05"
+                        value={settingsDraft.branding.backgroundImageOpacity ?? 0.25}
+                        onChange={(e) =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            branding: {
+                              ...prev.branding,
+                              backgroundImageOpacity: parseFloat(e.target.value),
+                            },
+                          }))
+                        }
+                        className="w-full accent-cyan-400 cursor-pointer"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1337,130 +1887,478 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             </div>
           )}
 
-          {/* TAB 4: Imagem Global do Alvo */}
+          {/* TAB 4: Imagens dos Alvos a Acertar */}
           {activeTab === 'image' && (
-            <div className="space-y-5">
-              <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-white flex items-center gap-2">
-                    <span>Tornar Imagem Obrigatória para Todos os Jogadores</span>
-                    {settingsDraft.customImageMandatory && (
-                      <span className="px-1.5 py-0.2 bg-cyan-400 text-slate-950 text-[9px] font-bold rounded">
-                        OBRIGATÓRIA
-                      </span>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm font-bold text-white font-display uppercase tracking-wider flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-cyan-400" />
+                  <span>Imagens dos Alvos a Acertar</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Personalize as figuras e alvos que surgem na arena. Carregue fotos, logotipos ou use os modelos prontos. Se adicionar múltiplas imagens, os alvos podem alternar durante a partida!
+                </p>
+              </div>
+
+              {/* Activation & Policy Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Enable custom target images */}
+                <div className="p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Ativar Imagens Personalizadas</div>
+                    <div className="text-[10px] text-slate-400">Exibe fotos nos alvos da arena</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settingsDraft.customTargetImage.enabled}
+                    onChange={(e) =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        customTargetImage: { ...prev.customTargetImage, enabled: e.target.checked },
+                      }))
+                    }
+                    className="w-4 h-4 accent-cyan-500 cursor-pointer"
+                  />
+                </div>
+
+                {/* Mandatory Image */}
+                <div className="p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Obrigatória no Quiosque</div>
+                    <div className="text-[10px] text-slate-400">Força para todos os participantes</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settingsDraft.customImageMandatory}
+                    onChange={(e) =>
+                      setSettingsDraft((prev) => ({ ...prev, customImageMandatory: e.target.checked }))
+                    }
+                    className="w-4 h-4 accent-cyan-500 cursor-pointer"
+                  />
+                </div>
+
+                {/* Randomize / Rotate multiple images */}
+                <div className="p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Alternar Múltiplas Imagens</div>
+                    <div className="text-[10px] text-slate-400">Alvos variam entre a galeria</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settingsDraft.customTargetImage.randomizeImages ?? true}
+                    onChange={(e) =>
+                      setSettingsDraft((prev) => ({
+                        ...prev,
+                        customTargetImage: { ...prev.customTargetImage, randomizeImages: e.target.checked },
+                      }))
+                    }
+                    className="w-4 h-4 accent-cyan-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Target Format & Neon Border Settings */}
+              <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-4">
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-display">
+                  Aparência & Formato dos Alvos
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Shape Fit */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">
+                      Modo de Ajuste da Imagem no Círculo:
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            customTargetImage: { ...prev.customTargetImage, shapeFit: 'cover' },
+                          }))
+                        }
+                        className={`px-3 py-2 text-xs font-semibold rounded-lg border transition ${
+                          settingsDraft.customTargetImage.shapeFit === 'cover'
+                            ? 'border-cyan-400 bg-cyan-950/40 text-cyan-300 font-bold'
+                            : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Preenchimento Total (Cover)
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            customTargetImage: { ...prev.customTargetImage, shapeFit: 'contain' },
+                          }))
+                        }
+                        className={`px-3 py-2 text-xs font-semibold rounded-lg border transition ${
+                          settingsDraft.customTargetImage.shapeFit === 'contain'
+                            ? 'border-cyan-400 bg-cyan-950/40 text-cyan-300 font-bold'
+                            : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Conter com Margem (Contain)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Border Color */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">
+                      Cor do Anel Neon do Alvo:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={settingsDraft.customTargetImage.customBorderColor || '#00d2ff'}
+                        onChange={(e) =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            customTargetImage: { ...prev.customTargetImage, customBorderColor: e.target.value },
+                          }))
+                        }
+                        className="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0"
+                      />
+                      <input
+                        type="text"
+                        value={settingsDraft.customTargetImage.customBorderColor || '#00d2ff'}
+                        onChange={(e) =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            customTargetImage: { ...prev.customTargetImage, customBorderColor: e.target.value },
+                          }))
+                        }
+                        className="w-full px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white font-mono-code"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ACTIVE TARGET IMAGES GALLERY */}
+              {(() => {
+                const imagesPool = settingsDraft.customTargetImage.images && settingsDraft.customTargetImage.images.length > 0
+                  ? settingsDraft.customTargetImage.images
+                  : settingsDraft.customTargetImage.imageUrl
+                  ? [settingsDraft.customTargetImage.imageUrl]
+                  : [];
+
+                return (
+                  <div className="p-5 bg-slate-950/90 border border-slate-800 rounded-xl space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <h4 className="text-xs font-bold text-white uppercase tracking-wider font-display flex items-center gap-2">
+                          <span>Galeria de Imagens Ativas ({imagesPool.length})</span>
+                          {imagesPool.length > 1 && (
+                            <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 text-[9px] font-mono-code font-bold">
+                              ROTAÇÃO ATIVA
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          {imagesPool.length === 0
+                            ? 'Nenhuma imagem cadastrada. Adicione imagens abaixo para começar.'
+                            : `${imagesPool.length} imagem(ns) configurada(s) para os alvos da partida.`}
+                        </p>
+                      </div>
+
+                      {imagesPool.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSettingsDraft((prev) => ({
+                              ...prev,
+                              customTargetImage: {
+                                ...prev.customTargetImage,
+                                imageUrl: '',
+                                images: [],
+                                enabled: false,
+                              },
+                            }));
+                            showToast('Todas as imagens de alvos foram removidas.');
+                          }}
+                          className="text-xs text-rose-400 hover:underline flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Limpar Todas</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {imagesPool.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 pt-2">
+                        {imagesPool.map((imgUrl, idx) => {
+                          const isPrimary = settingsDraft.customTargetImage.imageUrl === imgUrl;
+                          return (
+                            <div
+                              key={idx}
+                              className={`relative p-3 rounded-xl border flex flex-col items-center gap-2 transition ${
+                                isPrimary
+                                  ? 'bg-slate-900 border-cyan-500 shadow-md ring-1 ring-cyan-500/50'
+                                  : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                              }`}
+                            >
+                              {/* Thumbnail preview */}
+                              <div
+                                className="relative w-16 h-16 rounded-full overflow-hidden flex items-center justify-center border-2 shadow-lg"
+                                style={{
+                                  borderColor: settingsDraft.customTargetImage.customBorderColor || '#00d2ff',
+                                  boxShadow: `0 0 14px ${settingsDraft.customTargetImage.customBorderColor || '#00d2ff'}66`,
+                                  backgroundColor: '#050c18',
+                                }}
+                              >
+                                <img
+                                  src={imgUrl}
+                                  alt={`Alvo ${idx + 1}`}
+                                  className={`w-full h-full ${
+                                    settingsDraft.customTargetImage.shapeFit === 'contain'
+                                      ? 'object-contain p-1'
+                                      : 'object-cover'
+                                  }`}
+                                />
+                              </div>
+
+                              {/* Badge */}
+                              <div className="text-[10px] font-mono-code font-bold">
+                                {isPrimary ? (
+                                  <span className="text-amber-400 flex items-center gap-1">
+                                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> Principal
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">Alvo #{idx + 1}</span>
+                                )}
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex items-center gap-1.5 w-full pt-1 border-t border-slate-800/80">
+                                {!isPrimary && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetPrimaryTargetImage(imgUrl)}
+                                    className="flex-1 py-1 text-[10px] text-cyan-400 hover:text-white hover:bg-cyan-950/80 rounded transition text-center"
+                                    title="Tornar imagem primária"
+                                  >
+                                    Definir Principal
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveTargetImage(imgUrl)}
+                                  className="p-1 text-rose-400 hover:text-rose-200 hover:bg-rose-950/80 rounded transition"
+                                  title="Remover este alvo"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                        <ImageIcon className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
+                        <div className="text-xs font-semibold text-slate-400">Nenhum alvo personalizado ativo</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          Adicione imagens do computador, links ou use os modelos prontos abaixo.
+                        </div>
+                      </div>
                     )}
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">
-                    Quando ativado, todos os usuários jogarão com a imagem definida pelo administrador.
-                  </div>
-                </div>
+                );
+              })()}
 
-                <input
-                  type="checkbox"
-                  checked={settingsDraft.customImageMandatory}
-                  onChange={(e) =>
-                    setSettingsDraft((prev) => ({ ...prev, customImageMandatory: e.target.checked }))
-                  }
-                  className="w-5 h-5 accent-cyan-500 cursor-pointer"
-                />
-              </div>
+              {/* ADD NEW TARGET IMAGES SECTION */}
+              <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-4">
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-display flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-cyan-400" />
+                  <span>Adicionar Novas Imagens aos Alvos</span>
+                </h4>
 
-              {/* Preview */}
-              <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center gap-4">
-                <div
-                  className="relative w-20 h-20 rounded-full overflow-hidden flex items-center justify-center border-2 shadow-xl"
-                  style={{
-                    borderColor: settingsDraft.customTargetImage.customBorderColor || '#22d3ee',
-                    boxShadow: `0 0 20px ${settingsDraft.customTargetImage.customBorderColor || '#22d3ee'}88`,
-                    backgroundColor: '#050b14',
-                  }}
-                >
-                  {settingsDraft.customTargetImage.imageUrl ? (
-                    <img
-                      src={settingsDraft.customTargetImage.imageUrl}
-                      alt="Alvo do Admin"
-                      className={`w-full h-full ${
-                        settingsDraft.customTargetImage.shapeFit === 'contain' ? 'object-contain p-1' : 'object-cover'
-                      }`}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Upload from PC */}
+                  <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <Upload className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Upload de Arquivo Local</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Carregue PNG, JPG, SVG ou WebP do seu dispositivo.
+                    </p>
+                    <input
+                      ref={targetImageFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAddTargetImageFile}
+                      className="hidden"
                     />
-                  ) : (
-                    <span className="text-[10px] text-slate-500 text-center font-mono-code">
-                      Sem Imagem
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <div className="text-xs font-bold text-white">Imagem Atual do Alvo Master</div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">
-                    {settingsDraft.customTargetImage.imageUrl
-                      ? settingsDraft.customTargetImage.imageName || 'Imagem Carregada'
-                      : 'Nenhuma imagem configurada.'}
-                  </div>
-                  {settingsDraft.customTargetImage.imageUrl && (
                     <button
-                      onClick={() =>
-                        setSettingsDraft((prev) => ({
-                          ...prev,
-                          customTargetImage: {
-                            ...prev.customTargetImage,
-                            imageUrl: '',
-                            enabled: false,
-                          },
-                        }))
-                      }
-                      className="mt-2 text-rose-400 text-xs hover:underline flex items-center gap-1"
+                      type="button"
+                      onClick={() => targetImageFileInputRef.current?.click()}
+                      className="w-full py-2 px-3 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition border border-cyan-400/40 shadow"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Remover Imagem
+                      Selecionar Imagem do Computador
                     </button>
-                  )}
+                  </div>
+
+                  {/* Add by URL */}
+                  <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <LinkIcon className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Adicionar por Link (URL da Web)</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Insira o endereço direto de uma imagem online.
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={targetImageUrlInput}
+                        onChange={(e) => setTargetImageUrlInput(e.target.value)}
+                        placeholder="https://exemplo.com/alvo.png"
+                        className="flex-1 px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddTargetImageUrl}
+                        className="px-3.5 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition"
+                      >
+                        Adicionar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PRESET TARGET ICONS (ONE-CLICK) */}
+                <div className="pt-2">
+                  <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Modelos de Alvos Prontos (Clique para Ativar):</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+                    {TARGET_PRESET_IMAGES.map((preset) => (
+                      <div
+                        key={preset.id}
+                        onClick={() => handleAddPresetTargetImage(preset.url, preset.name)}
+                        className="p-2.5 bg-slate-900 border border-slate-800 hover:border-cyan-400 hover:bg-slate-850 rounded-xl cursor-pointer transition flex flex-col items-center gap-2 group shadow-sm active:scale-95"
+                      >
+                        <div
+                          className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border-2 border-cyan-400/60 shadow group-hover:scale-105 transition-transform"
+                          style={{ backgroundColor: '#050c18' }}
+                        >
+                          <img
+                            src={preset.url}
+                            alt={preset.name}
+                            className="w-full h-full object-contain p-0.5"
+                          />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-[10px] font-bold text-white group-hover:text-cyan-300 transition-colors truncate max-w-[85px]">
+                            {preset.name}
+                          </div>
+                          <span className="text-[8px] font-mono-code text-cyan-400/80 font-bold uppercase">
+                            {preset.badge}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Upload file */}
-              <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-                <div className="text-xs font-bold text-white mb-2 flex items-center gap-1.5">
-                  <Upload className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Upload de Arquivo Local para o Alvo</span>
+              {/* LIVE TARGET FIGURE SIZES PREVIEW */}
+              <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider font-display">
+                    Simulação dos Alvos na Arena (Tamanhos e Auras Reais)
+                  </span>
+                  <span className="text-[11px] font-mono-code text-slate-400">
+                    Borda: {settingsDraft.customTargetImage.customBorderColor || '#00d2ff'}
+                  </span>
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-2 px-4 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 rounded-xl transition border border-cyan-400/40"
-                >
-                  Selecionar Foto / Imagem do Computador
-                </button>
-              </div>
 
-              {/* Paste URL */}
-              <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl">
-                <div className="text-xs font-bold text-white mb-2 flex items-center gap-1.5">
-                  <LinkIcon className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Definir Imagem por Link (URL da Web)</span>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://exemplo.com/alvo.png"
-                    className="flex-1 px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white"
-                  />
-                  <button
-                    onClick={handleApplyUrl}
-                    className="px-4 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition"
-                  >
-                    Aplicar
-                  </button>
-                </div>
+                {(() => {
+                  const sampleImg = settingsDraft.customTargetImage.imageUrl ||
+                    (settingsDraft.customTargetImage.images && settingsDraft.customTargetImage.images[0]) ||
+                    TARGET_PRESET_IMAGES[0].url;
+
+                  return (
+                    <div className="flex flex-wrap items-center justify-around gap-6 p-4 bg-slate-950/80 rounded-xl border border-slate-800/80">
+                      {/* Small Target (Level 5-6) */}
+                      <div className="flex flex-col items-center gap-2">
+                        <div
+                          className="rounded-full overflow-hidden flex items-center justify-center border-2 transition-transform hover:scale-110 cursor-pointer shadow-lg animate-pulse"
+                          style={{
+                            width: '52px',
+                            height: '52px',
+                            borderColor: settingsDraft.customTargetImage.customBorderColor || '#00d2ff',
+                            boxShadow: `0 0 16px ${settingsDraft.customTargetImage.customBorderColor || '#00d2ff'}88`,
+                            backgroundColor: '#050c18',
+                          }}
+                        >
+                          <img
+                            src={sampleImg}
+                            alt="Alvo P"
+                            className={`w-full h-full ${
+                              settingsDraft.customTargetImage.shapeFit === 'contain' ? 'object-contain p-1' : 'object-cover'
+                            }`}
+                          />
+                        </div>
+                        <span className="text-[10px] font-mono-code text-slate-400">52px · Fases 5-6</span>
+                      </div>
+
+                      {/* Medium Target (Level 3-4) */}
+                      <div className="flex flex-col items-center gap-2">
+                        <div
+                          className="rounded-full overflow-hidden flex items-center justify-center border-2 transition-transform hover:scale-110 cursor-pointer shadow-lg"
+                          style={{
+                            width: '74px',
+                            height: '74px',
+                            borderColor: settingsDraft.customTargetImage.customBorderColor || '#00d2ff',
+                            boxShadow: `0 0 20px ${settingsDraft.customTargetImage.customBorderColor || '#00d2ff'}99`,
+                            backgroundColor: '#050c18',
+                          }}
+                        >
+                          <img
+                            src={sampleImg}
+                            alt="Alvo M"
+                            className={`w-full h-full ${
+                              settingsDraft.customTargetImage.shapeFit === 'contain' ? 'object-contain p-1' : 'object-cover'
+                            }`}
+                          />
+                        </div>
+                        <span className="text-[10px] font-mono-code text-cyan-400 font-bold">74px · Fases 3-4</span>
+                      </div>
+
+                      {/* Large Target (Level 1-2) */}
+                      <div className="flex flex-col items-center gap-2">
+                        <div
+                          className="rounded-full overflow-hidden flex items-center justify-center border-2 transition-transform hover:scale-110 cursor-pointer shadow-xl"
+                          style={{
+                            width: '92px',
+                            height: '92px',
+                            borderColor: settingsDraft.customTargetImage.customBorderColor || '#00d2ff',
+                            boxShadow: `0 0 25px ${settingsDraft.customTargetImage.customBorderColor || '#00d2ff'}aa`,
+                            backgroundColor: '#050c18',
+                          }}
+                        >
+                          <img
+                            src={sampleImg}
+                            alt="Alvo G"
+                            className={`w-full h-full ${
+                              settingsDraft.customTargetImage.shapeFit === 'contain' ? 'object-contain p-1' : 'object-cover'
+                            }`}
+                          />
+                        </div>
+                        <span className="text-[10px] font-mono-code text-slate-400">92px · Fases 1-2</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}

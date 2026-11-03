@@ -272,6 +272,18 @@ export const Arena: React.FC<ArenaProps> = ({
       const x = 12 + Math.random() * 76;
       const y = 14 + Math.random() * 72;
 
+      // Select target image from pool or primary custom image
+      let targetImageUrl: string | undefined = undefined;
+      const imagesPool = customImage?.images && customImage.images.length > 0
+        ? customImage.images
+        : customImage?.imageUrl
+        ? [customImage.imageUrl]
+        : [];
+
+      if (!isTrap && imagesPool.length > 0 && customImage?.enabled) {
+        targetImageUrl = imagesPool[prev % imagesPool.length];
+      }
+
       const newFigure: TargetFigureData = {
         id: `fig-${Date.now()}-${Math.random()}`,
         x,
@@ -286,6 +298,7 @@ export const Arena: React.FC<ArenaProps> = ({
         points: isGolden ? 3000 : 1000,
         vx,
         vy,
+        targetImageUrl,
       };
 
       setActiveFigures((current) => [...current, newFigure]);
