@@ -46,6 +46,8 @@ export interface BrandingColorsConfig {
   backgroundImageUrl?: string; // custom background image URL or base64
   backgroundImageOpacity?: number; // 0.05 to 1.0 (default 0.25)
   themePreset: 'agimus_blue' | 'cyberpunk' | 'emerald_tech' | 'sunset' | 'crimson' | 'custom';
+  showHeaderControls?: boolean; // Show stars, sound, and player badge in header
+  showAdminButtonInHeader?: boolean; // Show Admin button in header
 }
 
 export interface CompanyLogoConfig {
@@ -53,6 +55,16 @@ export interface CompanyLogoConfig {
   logoUrl: string;
   companyName: string;
   subTitle?: string;
+  showBrandText?: boolean; // Show textual title/subtitle next to logo in header
+}
+
+export interface GameArenaTextsConfig {
+  splashTitle?: string; // e.g. 'ARENA DE REFLEXOS'
+  splashSubtitle?: string; // e.g. 'Acerte as figuras que surgem no ecrã o mais rápido possível para pontuar pelo seu tempo de reação!'
+  startGameButtonText?: string; // e.g. 'COMEÇAR JOGO' or 'COMBINAR JOGO'
+  splashHintText?: string; // e.g. 'Toque no botão para iniciar a contagem regressiva'
+  showLevelBadge?: boolean; // e.g. 'FASE 1 · AQUECIMENTO SINÁPTICO'
+  showParameterChips?: boolean; // e.g. '6 Alvos', 'Tolerância', 'Bombas'
 }
 
 export interface RegistrationFormConfig {
@@ -107,6 +119,7 @@ export interface AppAdminSettings {
   branding: BrandingColorsConfig;
   logo: CompanyLogoConfig;
   registration: RegistrationFormConfig;
+  gameTexts: GameArenaTextsConfig;
 }
 
 export interface TargetFigureData {

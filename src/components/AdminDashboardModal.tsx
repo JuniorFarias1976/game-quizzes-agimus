@@ -48,7 +48,9 @@ import {
   Layout, 
   Star, 
   Plus,
-  RefreshCw
+  RefreshCw,
+  Type,
+  Play
 } from 'lucide-react';
 import { readAndCompressImageFile } from '../utils/imageOptimizer';
 
@@ -83,12 +85,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onClearRegistrations,
   onForceSyncCloud,
 }) => {
-  const [activeTab, setActiveTab] = useState<'branding' | 'registration' | 'levels' | 'image' | 'endgame' | 'leaderboard' | 'security'>('branding');
+  const [activeTab, setActiveTab] = useState<'branding' | 'texts' | 'registration' | 'levels' | 'image' | 'endgame' | 'leaderboard' | 'security'>('branding');
   const [settingsDraft, setSettingsDraft] = useState<AppAdminSettings>(() => ({
     ...DEFAULT_ADMIN_SETTINGS,
     ...(adminSettings || {}),
     branding: { ...DEFAULT_ADMIN_SETTINGS.branding, ...(adminSettings?.branding || {}) },
     logo: { ...DEFAULT_ADMIN_SETTINGS.logo, ...(adminSettings?.logo || {}) },
+    gameTexts: { ...DEFAULT_ADMIN_SETTINGS.gameTexts, ...(adminSettings?.gameTexts || {}) },
     customTargetImage: { ...DEFAULT_ADMIN_SETTINGS.customTargetImage, ...(adminSettings?.customTargetImage || {}) },
     endGameImage: { ...DEFAULT_ADMIN_SETTINGS.endGameImage, ...(adminSettings?.endGameImage || {}) },
     registration: { ...DEFAULT_ADMIN_SETTINGS.registration, ...(adminSettings?.registration || {}) },
@@ -112,6 +115,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           ...DEFAULT_ADMIN_SETTINGS.logo,
           ...(prev?.logo || {}),
           ...(adminSettings?.logo || {}),
+        },
+        gameTexts: {
+          ...DEFAULT_ADMIN_SETTINGS.gameTexts,
+          ...(prev?.gameTexts || {}),
+          ...(adminSettings?.gameTexts || {}),
         },
         customTargetImage: {
           ...DEFAULT_ADMIN_SETTINGS.customTargetImage,
@@ -697,6 +705,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           >
             <Palette className="w-4 h-4" />
             <span>Cores & Logotipo</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('texts')}
+            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+              activeTab === 'texts'
+                ? 'border-cyan-400 text-cyan-400'
+                : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            <Type className="w-4 h-4" />
+            <span>Textos & Botão do Jogo</span>
           </button>
 
           <button
@@ -1488,10 +1508,335 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* HEADER VISIBILITY CONTROLS */}
+              <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-xl space-y-4">
+                <div className="flex items-center gap-2">
+                  <Layout className="w-4 h-4 text-cyan-400" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider font-display">
+                    Visibilidade dos Elementos do Cabeçalho Superior
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Controle quais elementos são exibidos na barra superior do quiosque para os participantes.
+                </p>
+
+                <div className="space-y-3 pt-1">
+                  {/* Toggle: Brand texts next to logo */}
+                  <label className="flex items-start gap-3 p-3 bg-slate-950/70 border border-slate-800 rounded-lg cursor-pointer hover:border-slate-700 transition">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(settingsDraft.logo.showBrandText)}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => ({
+                          ...prev,
+                          logo: { ...prev.logo, showBrandText: e.target.checked },
+                        }))
+                      }
+                      className="w-4 h-4 mt-0.5 accent-cyan-400 cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-semibold text-white">
+                        Exibir Textos ao lado do Logotipo (ÁGIMO / REFLEXO / QUIOSQUE)
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">
+                        Desmarcado por padrão conforme solicitado: exibe apenas o logotipo da empresa com visual minimalista.
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Toggle: Right side controls */}
+                  <label className="flex items-start gap-3 p-3 bg-slate-950/70 border border-slate-800 rounded-lg cursor-pointer hover:border-slate-700 transition">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(settingsDraft.branding.showHeaderControls)}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => ({
+                          ...prev,
+                          branding: { ...prev.branding, showHeaderControls: e.target.checked },
+                        }))
+                      }
+                      className="w-4 h-4 mt-0.5 accent-cyan-400 cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-semibold text-white">
+                        Exibir Controles à Direita no Cabeçalho (Estrelas, Som e Perfil)
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">
+                        Desmarcado por padrão conforme solicitado: oculta as estrelas, botão de áudio e nome do jogador na barra superior.
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Toggle: Admin Button in header */}
+                  <label className="flex items-start gap-3 p-3 bg-slate-950/70 border border-slate-800 rounded-lg cursor-pointer hover:border-slate-700 transition">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(settingsDraft.branding.showAdminButtonInHeader)}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => ({
+                          ...prev,
+                          branding: { ...prev.branding, showAdminButtonInHeader: e.target.checked },
+                        }))
+                      }
+                      className="w-4 h-4 mt-0.5 accent-cyan-400 cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-semibold text-white">
+                        Exibir Botão "Painel Admin" no Cabeçalho
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">
+                        Desmarcado por padrão: mantém a interface limpa para os jogadores. Você pode acessar o painel clicando diretamente no logotipo no cabeçalho ou pelo atalho <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-cyan-300 font-mono text-[10px]">Alt + C</kbd>.
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* TAB 2: INSCRIÇÕES & FORMULÁRIO DE LEADS */}
+          {/* TAB: TEXTOS DA ARENA & BOTÃO DO JOGO */}
+          {activeTab === 'texts' && (
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider font-display flex items-center gap-2">
+                    <Type className="w-4 h-4 text-cyan-400" />
+                    <span>Personalização de Textos da Arena & Botão do Jogo</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Edite os títulos, instruções, o nome do botão principal e a dica de início da partida que aparecem na tela de apresentação da Arena.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSettingsDraft((prev) => ({
+                      ...prev,
+                      gameTexts: { ...DEFAULT_ADMIN_SETTINGS.gameTexts },
+                    }));
+                    showToast('Textos restaurados para os valores padrão.');
+                  }}
+                  className="px-2.5 py-1.5 text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg flex items-center gap-1.5 transition"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Restaurar Padrão</span>
+                </button>
+              </div>
+
+              {/* Form fields & Live Preview */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Left column: Text inputs */}
+                <div className="space-y-4 bg-slate-900/90 border border-slate-800 p-5 rounded-xl">
+                  {/* Title */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-200 mb-1">
+                      Título Principal da Arena:
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsDraft.gameTexts?.splashTitle ?? 'ARENA DE REFLEXOS'}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => ({
+                          ...prev,
+                          gameTexts: {
+                            ...prev.gameTexts,
+                            splashTitle: e.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="Ex: ARENA DE REFLEXOS, DESAFIO BOEHRINGER..."
+                      className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white font-display font-bold"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Título em destaque central exibido na tela inicial do jogo.
+                    </p>
+                  </div>
+
+                  {/* Subtitle / Instructions */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-200 mb-1">
+                      Instruções / Subtítulo:
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={settingsDraft.gameTexts?.splashSubtitle ?? 'Acerte as figuras que surgem no ecrã o mais rápido possível para pontuar pelo seu tempo de reação!'}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => ({
+                          ...prev,
+                          gameTexts: {
+                            ...prev.gameTexts,
+                            splashSubtitle: e.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="Instruções para o participante..."
+                      className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white resize-none"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Texto explicativo de apoio explicando o objetivo da prova.
+                    </p>
+                  </div>
+
+                  {/* Button Text */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-200 mb-1 flex items-center justify-between">
+                      <span>Nome do Botão do Jogo:</span>
+                      <span className="text-[10px] text-cyan-400 font-mono-code font-normal">Botão Principal</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsDraft.gameTexts?.startGameButtonText ?? 'COMEÇAR JOGO'}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => ({
+                          ...prev,
+                          gameTexts: {
+                            ...prev.gameTexts,
+                            startGameButtonText: e.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="Ex: COMEÇAR JOGO, COMBINAR JOGO, JOGAR AGORA, INICIAR PARTIDA..."
+                      className="w-full px-3 py-2 text-xs bg-slate-950 border border-cyan-500/50 rounded-lg text-white font-bold"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Texto exibido dentro do grande botão luminoso de início de partida.
+                    </p>
+                  </div>
+
+                  {/* Hint below button */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-200 mb-1">
+                      Texto de Dica abaixo do Botão:
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsDraft.gameTexts?.splashHintText ?? 'Toque no botão para iniciar a contagem regressiva'}
+                      onChange={(e) =>
+                        setSettingsDraft((prev) => ({
+                          ...prev,
+                          gameTexts: {
+                            ...prev.gameTexts,
+                            splashHintText: e.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="Ex: Toque no botão para iniciar a contagem regressiva"
+                      className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white font-mono-code"
+                    />
+                  </div>
+
+                  {/* Toggles */}
+                  <div className="pt-3 border-t border-slate-800 space-y-2.5">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={settingsDraft.gameTexts?.showLevelBadge ?? true}
+                        onChange={(e) =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            gameTexts: {
+                              ...prev.gameTexts,
+                              showLevelBadge: e.target.checked,
+                            },
+                          }))
+                        }
+                        className="w-4 h-4 accent-cyan-400 cursor-pointer"
+                      />
+                      <span>Exibir indicador da Fase (ex: Fase 1 · Aquecimento Sináptico)</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={settingsDraft.gameTexts?.showParameterChips ?? true}
+                        onChange={(e) =>
+                          setSettingsDraft((prev) => ({
+                            ...prev,
+                            gameTexts: {
+                              ...prev.gameTexts,
+                              showParameterChips: e.target.checked,
+                            },
+                          }))
+                        }
+                        className="w-4 h-4 accent-cyan-400 cursor-pointer"
+                      />
+                      <span>Exibir parâmetros da fase (Alvos, Tolerância, Bombas)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Right column: Live Interactive Preview */}
+                <div className="bg-slate-950 border border-slate-800 p-6 rounded-xl flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[360px]">
+                  {/* Subtle background glow */}
+                  <div
+                    className="absolute w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none"
+                    style={{ backgroundColor: settingsDraft.branding.primaryColor || '#00d2ff' }}
+                  />
+
+                  <div className="relative z-10 flex flex-col items-center max-w-sm space-y-4">
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono-code">
+                      Prévia em Tempo Real na Arena
+                    </span>
+
+                    {(settingsDraft.gameTexts?.showLevelBadge ?? true) && (
+                      <div
+                        className="px-3 py-0.5 rounded-full text-[10px] font-mono-code font-bold uppercase tracking-widest border"
+                        style={{
+                          borderColor: `${settingsDraft.branding.primaryColor || '#00d2ff'}66`,
+                          color: settingsDraft.branding.primaryColor || '#00d2ff',
+                          backgroundColor: `${settingsDraft.branding.primaryColor || '#00d2ff'}15`,
+                        }}
+                      >
+                        Fase 1 · Aquecimento Sináptico
+                      </div>
+                    )}
+
+                    <div>
+                      <h4 className="text-xl sm:text-2xl font-display font-black text-white tracking-wide">
+                        {settingsDraft.gameTexts?.splashTitle || 'ARENA DE REFLEXOS'}
+                      </h4>
+                      <p className="text-[11px] text-slate-300 mt-1 max-w-xs">
+                        {settingsDraft.gameTexts?.splashSubtitle || 'Acerte as figuras que surgem no ecrã o mais rápido possível para pontuar pelo seu tempo de reação!'}
+                      </p>
+                    </div>
+
+                    {(settingsDraft.gameTexts?.showParameterChips ?? true) && (
+                      <div className="flex flex-wrap items-center justify-center gap-1.5 text-[10px] font-mono-code">
+                        <span className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-md text-slate-300">
+                          🎯 6 Alvos
+                        </span>
+                        <span className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-md text-slate-300">
+                          ⚡ 1350ms
+                        </span>
+                        <span className="px-2 py-0.5 bg-red-950/60 border border-red-800/60 rounded-md text-red-300">
+                          💣 Bombas
+                        </span>
+                      </div>
+                    )}
+
+                    <div
+                      className="px-6 py-3 rounded-xl font-display font-black text-xs sm:text-sm uppercase tracking-wider text-slate-950 flex items-center gap-2 shadow-xl"
+                      style={{
+                        backgroundColor: settingsDraft.branding.primaryColor || '#00d2ff',
+                        boxShadow: `0 0 20px ${settingsDraft.branding.primaryColor || '#00d2ff'}66`,
+                      }}
+                    >
+                      <Play className="w-4 h-4 fill-slate-950" />
+                      <span>{settingsDraft.gameTexts?.startGameButtonText || 'COMEÇAR JOGO'}</span>
+                    </div>
+
+                    <div className="text-[10px] text-slate-400 font-mono-code">
+                      {settingsDraft.gameTexts?.splashHintText || 'Toque no botão para iniciar a contagem regressiva'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: INSCRIÇÕES & FORMULÁRIO DE LEADS */}
           {activeTab === 'registration' && (
             <div className="space-y-6">
               {/* Gate toggle */}

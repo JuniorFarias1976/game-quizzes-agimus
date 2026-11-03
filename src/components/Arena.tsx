@@ -7,7 +7,8 @@ import {
   FigureTheme, 
   CrosshairType,
   CustomTargetImageConfig,
-  DevControlOverrides
+  DevControlOverrides,
+  GameArenaTextsConfig
 } from '../types/game';
 import { sound } from '../utils/sound';
 import { TargetFigure } from './TargetFigure';
@@ -40,6 +41,7 @@ interface ArenaProps {
   requiresRegistration?: boolean;
   onRequestRegistration?: () => void;
   autoStartSignal?: number;
+  gameTexts?: GameArenaTextsConfig;
 }
 
 interface FloatingText {
@@ -88,6 +90,7 @@ export const Arena: React.FC<ArenaProps> = ({
   requiresRegistration = false,
   onRequestRegistration,
   autoStartSignal,
+  gameTexts,
 }) => {
   const arenaRef = useRef<HTMLDivElement>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -821,41 +824,45 @@ export const Arena: React.FC<ArenaProps> = ({
 
             <div className="relative z-10 flex flex-col items-center max-w-lg space-y-5 animate-in fade-in zoom-in-95 duration-200">
               {/* Level indicator pill */}
-              <div 
-                className="px-3 py-1 rounded-full text-xs font-mono-code font-bold uppercase tracking-widest border"
-                style={{
-                  borderColor: `${primaryColor}66`,
-                  color: primaryColor,
-                  backgroundColor: `${primaryColor}15`,
-                }}
-              >
-                Fase {level.id} · {level.name}
-              </div>
+              {(gameTexts?.showLevelBadge ?? true) && (
+                <div 
+                  className="px-3 py-1 rounded-full text-xs font-mono-code font-bold uppercase tracking-widest border"
+                  style={{
+                    borderColor: `${primaryColor}66`,
+                    color: primaryColor,
+                    backgroundColor: `${primaryColor}15`,
+                  }}
+                >
+                  Fase {level.id} · {level.name}
+                </div>
+              )}
 
               {/* Headline */}
               <div>
                 <h1 className="text-3xl sm:text-4xl font-display font-black text-white tracking-wide drop-shadow-md">
-                  ARENA DE REFLEXOS
+                  {gameTexts?.splashTitle || 'ARENA DE REFLEXOS'}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-md">
-                  Acerte as figuras que surgem no ecrã o mais rápido possível para pontuar pelo seu tempo de reação!
+                  {gameTexts?.splashSubtitle || 'Acerte as figuras que surgem no ecrã o mais rápido possível para pontuar pelo seu tempo de reação!'}
                 </p>
               </div>
 
               {/* Stage Parameters Pill Group */}
-              <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-mono-code">
-                <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-slate-300">
-                  🎯 {level.targetCount} Alvos
-                </span>
-                <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-slate-300">
-                  ⚡ Tolerância: {level.baseDurationMs}ms
-                </span>
-                {level.trapChance > 0 && (
-                  <span className="px-2.5 py-1 bg-red-950/60 border border-red-800/60 rounded-lg text-red-300">
-                    💣 Cuidado com Bombas
+              {(gameTexts?.showParameterChips ?? true) && (
+                <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-mono-code">
+                  <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-slate-300">
+                    🎯 {level.targetCount} Alvos
                   </span>
-                )}
-              </div>
+                  <span className="px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-slate-300">
+                    ⚡ Tolerância: {level.baseDurationMs}ms
+                  </span>
+                  {level.trapChance > 0 && (
+                    <span className="px-2.5 py-1 bg-red-950/60 border border-red-800/60 rounded-lg text-red-300">
+                      💣 Cuidado com Bombas
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Primary Start Game Button */}
               <button
@@ -868,11 +875,11 @@ export const Arena: React.FC<ArenaProps> = ({
                 }}
               >
                 <Play className="w-6 h-6 fill-slate-950" />
-                <span>Começar Jogo</span>
+                <span>{gameTexts?.startGameButtonText || 'COMEÇAR JOGO'}</span>
               </button>
 
               <div className="text-[11px] text-slate-400 font-mono-code">
-                Toque no botão para iniciar a contagem regressiva
+                {gameTexts?.splashHintText || 'Toque no botão para iniciar a contagem regressiva'}
               </div>
             </div>
           </div>

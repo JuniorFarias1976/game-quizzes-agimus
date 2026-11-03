@@ -147,14 +147,21 @@ function mergeCloudSettings(cloudData: Partial<AppAdminSettings>): AppAdminSetti
       headerStyle: cloudBranding.headerStyle || DEFAULT_ADMIN_SETTINGS.branding.headerStyle,
       backgroundPattern: cloudBranding.backgroundPattern || DEFAULT_ADMIN_SETTINGS.branding.backgroundPattern,
       backgroundImageOpacity: typeof cloudBranding.backgroundImageOpacity === 'number' ? cloudBranding.backgroundImageOpacity : DEFAULT_ADMIN_SETTINGS.branding.backgroundImageOpacity,
+      showHeaderControls: cloudBranding.showHeaderControls !== undefined ? Boolean(cloudBranding.showHeaderControls) : DEFAULT_ADMIN_SETTINGS.branding.showHeaderControls,
+      showAdminButtonInHeader: cloudBranding.showAdminButtonInHeader !== undefined ? Boolean(cloudBranding.showAdminButtonInHeader) : DEFAULT_ADMIN_SETTINGS.branding.showAdminButtonInHeader,
     },
     logo: {
       ...DEFAULT_ADMIN_SETTINGS.logo,
       ...(cloudData.logo || {}),
+      showBrandText: cloudData.logo?.showBrandText !== undefined ? Boolean(cloudData.logo.showBrandText) : DEFAULT_ADMIN_SETTINGS.logo.showBrandText,
     },
     registration: {
       ...DEFAULT_ADMIN_SETTINGS.registration,
       ...(cloudData.registration || {}),
+    },
+    gameTexts: {
+      ...DEFAULT_ADMIN_SETTINGS.gameTexts,
+      ...(cloudData.gameTexts || {}),
     },
     customLevelConfigs: cloudData.customLevelConfigs || {},
   };

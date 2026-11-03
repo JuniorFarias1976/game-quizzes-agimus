@@ -51,30 +51,39 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
         {/* Brand / Logo */}
         <div 
-          onClick={() => onSelectTab('arena')}
+          onClick={() => {
+            if (onOpenAdmin) {
+              onOpenAdmin();
+            } else {
+              onSelectTab('arena');
+            }
+          }}
           className="flex items-center gap-2.5 cursor-pointer group shrink-0"
+          title="Toque para Administrar ou Iniciar Jogo"
         >
           {logo?.enabled && logo?.logoUrl ? (
             <div className="flex items-center gap-2.5">
               <img
                 src={logo.logoUrl}
                 alt={logo.companyName || 'Logo'}
-                className="h-9 max-w-[120px] sm:max-w-[150px] object-contain rounded-lg p-0.5 bg-slate-900/60 border border-slate-700/60 group-hover:scale-105 transition-transform"
+                className="h-10 max-w-[140px] sm:max-w-[180px] object-contain rounded-lg p-0.5 bg-slate-900/40 border border-slate-700/40 group-hover:scale-105 transition-transform"
               />
-              <div className="hidden sm:block">
-                <div className="font-display font-black text-sm text-white tracking-wider flex items-center gap-1.5">
-                  <span>{logo.companyName || 'AGIMUS'}</span>
-                  <span 
-                    className="text-[9px] px-1.5 py-0.2 rounded font-mono-code font-bold uppercase tracking-wider"
-                    style={{ backgroundColor: `${primaryColor}25`, color: primaryColor }}
-                  >
-                    {logo.subTitle || 'REFLEX'}
-                  </span>
+              {Boolean(logo.showBrandText) && (
+                <div className="hidden sm:block">
+                  <div className="font-display font-black text-sm text-white tracking-wider flex items-center gap-1.5">
+                    <span>{logo.companyName || 'AGIMUS'}</span>
+                    <span 
+                      className="text-[9px] px-1.5 py-0.2 rounded font-mono-code font-bold uppercase tracking-wider"
+                      style={{ backgroundColor: `${primaryColor}25`, color: primaryColor }}
+                    >
+                      {logo.subTitle || 'REFLEX'}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono-code">
+                    QUIOSQUE DE REAÇÃO RÁPIDA
+                  </div>
                 </div>
-                <div className="text-[10px] text-slate-400 font-mono-code">
-                  QUIOSQUE DE REAÇÃO RÁPIDA
-                </div>
-              </div>
+              )}
             </div>
           ) : (
             <>
@@ -87,15 +96,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Zap className="w-5 h-5 text-slate-950" />
               </div>
-              <div>
-                <div className="font-display font-black text-lg text-white tracking-wider flex items-center gap-1">
-                  <span>{logo?.companyName ? logo.companyName.toUpperCase() : 'AGIMUS'}</span>
-                  <span style={{ color: primaryColor }}>REFLEX</span>
+              {Boolean(logo?.showBrandText) && (
+                <div>
+                  <div className="font-display font-black text-lg text-white tracking-wider flex items-center gap-1">
+                    <span>{logo?.companyName ? logo.companyName.toUpperCase() : 'AGIMUS'}</span>
+                    <span style={{ color: primaryColor }}>REFLEX</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 -mt-1 font-mono-code">
+                    {logo?.subTitle || 'ARENA DE REAÇÃO RÁPIDA'}
+                  </div>
                 </div>
-                <div className="text-[10px] text-slate-400 -mt-1 font-mono-code">
-                  {logo?.subTitle || 'ARENA DE REAÇÃO RÁPIDA'}
-                </div>
-              </div>
+              )}
             </>
           )}
         </div>
@@ -171,63 +182,71 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Stars Count */}
-          <div 
-            onClick={onOpenCertificate}
-            className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs cursor-pointer hover:border-amber-400/50 transition"
-            title="Ver Certificado de Piloto"
-          >
-            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-            <span className="font-mono-code font-bold text-amber-300">{totalStars}★</span>
-          </div>
-
-          {/* Sound Toggle */}
-          <button
-            onClick={onToggleSound}
-            className="p-2 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg transition"
-            title={soundEnabled ? 'Silenciar Áudio' : 'Ativar Áudio'}
-          >
-            {soundEnabled ? (
-              <Volume2 className="w-4 h-4" style={{ color: primaryColor }} />
-            ) : (
-              <VolumeX className="w-4 h-4 text-slate-500" />
-            )}
-          </button>
-
-          {/* Admin Mode / Control Panel Button */}
-          {isAdminLoggedIn ? (
-            <button
-              onClick={onOpenAdmin}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border bg-emerald-950/90 border-emerald-500/70 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.35)] transition hover:bg-emerald-900/80 active:scale-95"
-              title="Modo Administrador Ativo (Clique para abrir o painel)"
+          {/* Stars Count (Hidden by default as requested; enabled via admin branding toggle) */}
+          {Boolean(branding?.showHeaderControls) && (
+            <div 
+              onClick={onOpenCertificate}
+              className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs cursor-pointer hover:border-amber-400/50 transition"
+              title="Ver Certificado de Piloto"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="font-mono-code font-bold text-[11px]">
-                PAINEL
-              </span>
-            </button>
-          ) : (
+              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <span className="font-mono-code font-bold text-amber-300">{totalStars}★</span>
+            </div>
+          )}
+
+          {/* Sound Toggle (Hidden by default as requested; enabled via admin branding toggle) */}
+          {Boolean(branding?.showHeaderControls) && (
             <button
-              onClick={onOpenAdmin}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-400/80 rounded-lg text-xs transition shadow-sm active:scale-95"
-              title="Abrir Painel de Controle (Senha: admin123 ou ALT+C)"
+              onClick={onToggleSound}
+              className="p-2 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-lg transition"
+              title={soundEnabled ? 'Silenciar Áudio' : 'Ativar Áudio'}
             >
-              <Lock className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-[11px] font-semibold hidden sm:inline">Painel Admin</span>
+              {soundEnabled ? (
+                <Volume2 className="w-4 h-4" style={{ color: primaryColor }} />
+              ) : (
+                <VolumeX className="w-4 h-4 text-slate-500" />
+              )}
             </button>
           )}
 
-          {/* Player Badge */}
-          <div 
-            onClick={onOpenCertificate}
-            className="flex items-center gap-2 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer hover:border-cyan-400/50 transition"
-            title="Clique para ver o Certificado do Jogador"
-          >
-            <span className="text-base">{stats.country}</span>
-            <span className="text-xs font-semibold text-white max-w-[80px] sm:max-w-[110px] truncate hidden sm:inline">
-              {stats.playerName}
-            </span>
-          </div>
+          {/* Admin Mode / Control Panel Button (Only shown if enabled or when admin is logged in) */}
+          {(Boolean(branding?.showAdminButtonInHeader) || isAdminLoggedIn) && (
+            isAdminLoggedIn ? (
+              <button
+                onClick={onOpenAdmin}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border bg-emerald-950/90 border-emerald-500/70 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.35)] transition hover:bg-emerald-900/80 active:scale-95"
+                title="Modo Administrador Ativo (Clique para abrir o painel)"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-mono-code font-bold text-[11px]">
+                  PAINEL
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={onOpenAdmin}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-slate-300 hover:text-white bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-400/80 rounded-lg text-xs transition shadow-sm active:scale-95"
+                title="Abrir Painel de Controle (Senha: admin123 ou ALT+C)"
+              >
+                <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-[11px] font-semibold hidden sm:inline">Painel Admin</span>
+              </button>
+            )
+          )}
+
+          {/* Player Badge (Hidden by default as requested; enabled via admin branding toggle) */}
+          {Boolean(branding?.showHeaderControls) && (
+            <div 
+              onClick={onOpenCertificate}
+              className="flex items-center gap-2 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer hover:border-cyan-400/50 transition"
+              title="Clique para ver o Certificado do Jogador"
+            >
+              <span className="text-base">{stats.country}</span>
+              <span className="text-xs font-semibold text-white max-w-[80px] sm:max-w-[110px] truncate hidden sm:inline">
+                {stats.playerName}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </header>

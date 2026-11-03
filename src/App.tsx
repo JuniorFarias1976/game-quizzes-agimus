@@ -597,6 +597,7 @@ export default function App() {
               requiresRegistration={adminSettings.registration.enabled && !hasRegisteredThisSession}
               onRequestRegistration={() => setShowRegistrationModal(true)}
               autoStartSignal={autoStartSignal}
+              gameTexts={adminSettings.gameTexts}
             />
 
             {/* Admin-Only Controls & Level Switcher (Hidden for normal kiosk users) */}

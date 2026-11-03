@@ -36,12 +36,15 @@ export const DEFAULT_ADMIN_SETTINGS: AppAdminSettings = {
     backgroundImageUrl: '',
     backgroundImageOpacity: 0.25,
     themePreset: 'agimus_blue',
+    showHeaderControls: false, // Default: false (Removes stars, sound, and player badge from header)
+    showAdminButtonInHeader: false, // Default: false (Removes admin button from header)
   },
   logo: {
     enabled: true,
     logoUrl: '',
     companyName: 'AGIMUS',
     subTitle: 'KIOSK GAME ARENA',
+    showBrandText: false, // Default: false (Removes text next to logo in header)
   },
   registration: {
     enabled: true,
@@ -58,6 +61,14 @@ export const DEFAULT_ADMIN_SETTINGS: AppAdminSettings = {
     title: 'Inscrição no Quiosque Agimus',
     description: 'Preencha seus dados para entrar no placar oficial do evento e disputar prêmios.',
     consentText: 'Autorizo o contato da Agimus para envio de resultados e novidades do evento.',
+  },
+  gameTexts: {
+    splashTitle: 'ARENA DE REFLEXOS',
+    splashSubtitle: 'Acerte as figuras que surgem no ecrã o mais rápido possível para pontuar pelo seu tempo de reação!',
+    startGameButtonText: 'COMEÇAR JOGO',
+    splashHintText: 'Toque no botão para iniciar a contagem regressiva',
+    showLevelBadge: true,
+    showParameterChips: true,
   },
 };
 
@@ -84,6 +95,10 @@ export function loadAdminSettings(): AppAdminSettings {
       registration: {
         ...DEFAULT_ADMIN_SETTINGS.registration,
         ...(parsed.registration || {}),
+      },
+      gameTexts: {
+        ...DEFAULT_ADMIN_SETTINGS.gameTexts,
+        ...(parsed.gameTexts || {}),
       },
     };
   } catch {
