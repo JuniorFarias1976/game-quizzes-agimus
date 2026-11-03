@@ -145,9 +145,7 @@ export default function App() {
   // 2. Subscribe to Cloud Leaderboard for Real-Time Multi-Device Ranking
   useEffect(() => {
     const unsubscribe = subscribeToCloudLeaderboard((cloudEntries) => {
-      if (cloudEntries && cloudEntries.length > 0) {
-        setLeaderboard(cloudEntries);
-      }
+      setLeaderboard(cloudEntries);
     });
     return () => unsubscribe();
   }, []);
@@ -259,13 +257,17 @@ export default function App() {
 
   const handleClearLeaderboard = async () => {
     const updated = clearAllLeaderboard();
-    setLeaderboard(updated);
+    setLeaderboard([]);
     await clearAllLeaderboardCloud();
   };
 
-  const handleRestoreLeaderboard = () => {
+  const handleRestoreLeaderboard = async () => {
     const updated = restoreDefaultLeaderboard();
     setLeaderboard(updated);
+    await clearAllLeaderboardCloud();
+    for (const entry of updated) {
+      await submitLeaderboardCloud(entry);
+    }
   };
 
   // Persist custom image updates
@@ -529,9 +531,16 @@ export default function App() {
       {/* Dynamic Background Pattern / Custom Image Layer */}
       {adminSettings.branding.backgroundImageUrl ? (
         <div 
-          className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center transition-opacity"
+          className="fixed inset-0 pointer-events-none z-0 transition-opacity"
           style={{
             backgroundImage: `url(${adminSettings.branding.backgroundImageUrl})`,
+            backgroundSize: 
+              adminSettings.branding.backgroundImageFit === 'cover' ? 'cover' :
+              adminSettings.branding.backgroundImageFit === 'contain' ? 'contain' :
+              adminSettings.branding.backgroundImageFit === 'repeat' ? 'auto' :
+              '100% 100%', // 'fill' = Preenche toda a página 100% sem cortes
+            backgroundRepeat: adminSettings.branding.backgroundImageFit === 'repeat' ? 'repeat' : 'no-repeat',
+            backgroundPosition: adminSettings.branding.backgroundImagePosition || 'center',
             opacity: adminSettings.branding.backgroundImageOpacity ?? 0.25,
           }}
         />

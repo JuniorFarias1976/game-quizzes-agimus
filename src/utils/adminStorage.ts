@@ -35,6 +35,8 @@ export const DEFAULT_ADMIN_SETTINGS: AppAdminSettings = {
     backgroundPattern: 'grid',
     backgroundImageUrl: '',
     backgroundImageOpacity: 0.25,
+    backgroundImageFit: 'fill', // Default: fill the entire page without crop
+    backgroundImagePosition: 'center',
     themePreset: 'agimus_blue',
     showHeaderControls: false, // Default: false (Removes stars, sound, and player badge from header)
     showAdminButtonInHeader: false, // Default: false (Removes admin button from header)

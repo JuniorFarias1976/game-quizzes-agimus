@@ -109,24 +109,37 @@ export const INITIAL_LEADERBOARD: LeaderboardEntry[] = [
   }
 ];
 
+const CLEARED_FLAG_KEY = 'neuroreflex_leaderboard_cleared_v1';
+
 export function getStoredLeaderboard(): LeaderboardEntry[] {
   try {
+    const isCleared = localStorage.getItem(CLEARED_FLAG_KEY) === 'true';
+    if (isCleared) {
+      return [];
+    }
+
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_LEADERBOARD));
-      return INITIAL_LEADERBOARD;
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
     }
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
-    }
+
+    // First time initializing applet on a fresh browser
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_LEADERBOARD));
     return INITIAL_LEADERBOARD;
   } catch {
-    return INITIAL_LEADERBOARD;
+    return [];
   }
 }
 
 export function saveLeaderboardEntry(entry: Omit<LeaderboardEntry, 'id'>): LeaderboardEntry[] {
+  // If a new player registers a score, remove the cleared flag
+  try {
+    localStorage.removeItem(CLEARED_FLAG_KEY);
+  } catch {}
+
   const current = getStoredLeaderboard();
   const newEntry: LeaderboardEntry = {
     ...entry,
@@ -154,12 +167,16 @@ export function deleteLeaderboardEntry(id: string): LeaderboardEntry[] {
   const updated = current.filter((item) => item.id !== id);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    if (updated.length === 0) {
+      localStorage.setItem(CLEARED_FLAG_KEY, 'true');
+    }
   } catch {}
   return updated;
 }
 
 export function clearAllLeaderboard(): LeaderboardEntry[] {
   try {
+    localStorage.setItem(CLEARED_FLAG_KEY, 'true');
     localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   } catch {}
   return [];
@@ -167,6 +184,7 @@ export function clearAllLeaderboard(): LeaderboardEntry[] {
 
 export function restoreDefaultLeaderboard(): LeaderboardEntry[] {
   try {
+    localStorage.removeItem(CLEARED_FLAG_KEY);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_LEADERBOARD));
   } catch {}
   return INITIAL_LEADERBOARD;

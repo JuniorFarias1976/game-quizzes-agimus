@@ -45,6 +45,8 @@ export interface BrandingColorsConfig {
   backgroundPattern?: 'grid' | 'dots' | 'radial' | 'plain' | 'image';
   backgroundImageUrl?: string; // custom background image URL or base64
   backgroundImageOpacity?: number; // 0.05 to 1.0 (default 0.25)
+  backgroundImageFit?: 'fill' | 'cover' | 'contain' | 'repeat'; // 'fill' = 100% 100% (fills entire page without crop), 'cover', 'contain', 'repeat'
+  backgroundImagePosition?: 'center' | 'top' | 'bottom';
   themePreset: 'agimus_blue' | 'cyberpunk' | 'emerald_tech' | 'sunset' | 'crimson' | 'custom';
   showHeaderControls?: boolean; // Show stars, sound, and player badge in header
   showAdminButtonInHeader?: boolean; // Show Admin button in header

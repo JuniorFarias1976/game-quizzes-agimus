@@ -1338,30 +1338,161 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </div>
 
                   {settingsDraft.branding.backgroundImageUrl && (
-                    <div className="pt-2 border-t border-slate-800/80 space-y-2">
-                      <div className="flex items-center justify-between text-xs text-slate-300">
-                        <span>Opacidade da Imagem de Fundo:</span>
-                        <span className="font-mono-code font-bold text-cyan-400">
-                          {Math.round((settingsDraft.branding.backgroundImageOpacity ?? 0.25) * 100)}%
-                        </span>
+                    <div className="pt-3 border-t border-slate-800/80 space-y-4">
+                      {/* Dimension / Fit Modes */}
+                      <div>
+                        <div className="flex items-center justify-between text-xs text-slate-300 mb-2">
+                          <span className="font-semibold text-white">Dimensionamento da Imagem de Fundo (Ajuste à Tela):</span>
+                          <span className="text-[10px] text-cyan-400 font-mono-code font-bold">
+                            {settingsDraft.branding.backgroundImageFit === 'cover'
+                              ? 'Cobrir Proporcional'
+                              : settingsDraft.branding.backgroundImageFit === 'contain'
+                              ? 'Conter sem Cortar'
+                              : settingsDraft.branding.backgroundImageFit === 'repeat'
+                              ? 'Repetir (Mosaico)'
+                              : 'Preencher Toda a Página (100% 100%)'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {/* 1. Fill 100% 100% (No crop) */}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSettingsDraft((prev) => ({
+                                ...prev,
+                                branding: { ...prev.branding, backgroundImageFit: 'fill' },
+                              }))
+                            }
+                            className={`p-2.5 rounded-lg border text-left transition flex flex-col gap-1 ${
+                              (settingsDraft.branding.backgroundImageFit ?? 'fill') === 'fill'
+                                ? 'border-cyan-400 bg-cyan-950/50 text-cyan-300 font-bold shadow-sm'
+                                : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold text-white">Preencher Página</span>
+                            <span className="text-[10px] text-slate-400 leading-tight">
+                              Estica 100% sem cortar nada
+                            </span>
+                          </button>
+
+                          {/* 2. Cover (Proportional) */}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSettingsDraft((prev) => ({
+                                ...prev,
+                                branding: { ...prev.branding, backgroundImageFit: 'cover' },
+                              }))
+                            }
+                            className={`p-2.5 rounded-lg border text-left transition flex flex-col gap-1 ${
+                              settingsDraft.branding.backgroundImageFit === 'cover'
+                                ? 'border-cyan-400 bg-cyan-950/50 text-cyan-300 font-bold shadow-sm'
+                                : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold text-white">Cobrir Tela (Cover)</span>
+                            <span className="text-[10px] text-slate-400 leading-tight">
+                              Mantém proporção da foto
+                            </span>
+                          </button>
+
+                          {/* 3. Contain */}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSettingsDraft((prev) => ({
+                                ...prev,
+                                branding: { ...prev.branding, backgroundImageFit: 'contain' },
+                              }))
+                            }
+                            className={`p-2.5 rounded-lg border text-left transition flex flex-col gap-1 ${
+                              settingsDraft.branding.backgroundImageFit === 'contain'
+                                ? 'border-cyan-400 bg-cyan-950/50 text-cyan-300 font-bold shadow-sm'
+                                : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold text-white">Conter (Contain)</span>
+                            <span className="text-[10px] text-slate-400 leading-tight">
+                              Mostra toda a imagem
+                            </span>
+                          </button>
+
+                          {/* 4. Repeat */}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSettingsDraft((prev) => ({
+                                ...prev,
+                                branding: { ...prev.branding, backgroundImageFit: 'repeat' },
+                              }))
+                            }
+                            className={`p-2.5 rounded-lg border text-left transition flex flex-col gap-1 ${
+                              settingsDraft.branding.backgroundImageFit === 'repeat'
+                                ? 'border-cyan-400 bg-cyan-950/50 text-cyan-300 font-bold shadow-sm'
+                                : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <span className="text-xs font-bold text-white">Mosaico (Repeat)</span>
+                            <span className="text-[10px] text-slate-400 leading-tight">
+                              Repete em ladrilho
+                            </span>
+                          </button>
+                        </div>
                       </div>
-                      <input
-                        type="range"
-                        min="0.05"
-                        max="1"
-                        step="0.05"
-                        value={settingsDraft.branding.backgroundImageOpacity ?? 0.25}
-                        onChange={(e) =>
-                          setSettingsDraft((prev) => ({
-                            ...prev,
-                            branding: {
-                              ...prev.branding,
-                              backgroundImageOpacity: parseFloat(e.target.value),
-                            },
-                          }))
-                        }
-                        className="w-full accent-cyan-400 cursor-pointer"
-                      />
+
+                      {/* Position */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/60">
+                        <span className="text-xs text-slate-300 font-semibold">Alinhamento Vertical:</span>
+                        <div className="flex gap-1.5">
+                          {(['top', 'center', 'bottom'] as const).map((pos) => (
+                            <button
+                              key={pos}
+                              type="button"
+                              onClick={() =>
+                                setSettingsDraft((prev) => ({
+                                  ...prev,
+                                  branding: { ...prev.branding, backgroundImagePosition: pos },
+                                }))
+                              }
+                              className={`px-3 py-1 rounded text-xs transition ${
+                                (settingsDraft.branding.backgroundImagePosition || 'center') === pos
+                                  ? 'bg-cyan-500 text-slate-950 font-bold'
+                                  : 'bg-slate-950 border border-slate-700 text-slate-300 hover:text-white'
+                              }`}
+                            >
+                              {pos === 'top' ? 'Topo' : pos === 'bottom' ? 'Base' : 'Centro'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Opacity Slider */}
+                      <div className="pt-2 border-t border-slate-800/60 space-y-2">
+                        <div className="flex items-center justify-between text-xs text-slate-300">
+                          <span>Opacidade da Imagem de Fundo:</span>
+                          <span className="font-mono-code font-bold text-cyan-400">
+                            {Math.round((settingsDraft.branding.backgroundImageOpacity ?? 0.25) * 100)}%
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.05"
+                          max="1"
+                          step="0.05"
+                          value={settingsDraft.branding.backgroundImageOpacity ?? 0.25}
+                          onChange={(e) =>
+                            setSettingsDraft((prev) => ({
+                              ...prev,
+                              branding: {
+                                ...prev.branding,
+                                backgroundImageOpacity: parseFloat(e.target.value),
+                              },
+                            }))
+                          }
+                          className="w-full accent-cyan-400 cursor-pointer"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>

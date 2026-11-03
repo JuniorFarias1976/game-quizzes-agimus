@@ -147,6 +147,8 @@ function mergeCloudSettings(cloudData: Partial<AppAdminSettings>): AppAdminSetti
       headerStyle: cloudBranding.headerStyle || DEFAULT_ADMIN_SETTINGS.branding.headerStyle,
       backgroundPattern: cloudBranding.backgroundPattern || DEFAULT_ADMIN_SETTINGS.branding.backgroundPattern,
       backgroundImageOpacity: typeof cloudBranding.backgroundImageOpacity === 'number' ? cloudBranding.backgroundImageOpacity : DEFAULT_ADMIN_SETTINGS.branding.backgroundImageOpacity,
+      backgroundImageFit: cloudBranding.backgroundImageFit || DEFAULT_ADMIN_SETTINGS.branding.backgroundImageFit,
+      backgroundImagePosition: cloudBranding.backgroundImagePosition || DEFAULT_ADMIN_SETTINGS.branding.backgroundImagePosition,
       showHeaderControls: cloudBranding.showHeaderControls !== undefined ? Boolean(cloudBranding.showHeaderControls) : DEFAULT_ADMIN_SETTINGS.branding.showHeaderControls,
       showAdminButtonInHeader: cloudBranding.showAdminButtonInHeader !== undefined ? Boolean(cloudBranding.showAdminButtonInHeader) : DEFAULT_ADMIN_SETTINGS.branding.showAdminButtonInHeader,
     },
@@ -322,17 +324,26 @@ export function subscribeToCloudLeaderboard(
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        if (!snapshot.empty) {
-          const cloudEntries: LeaderboardEntry[] = [];
-          snapshot.forEach((d) => {
-            cloudEntries.push({ ...d.data(), id: d.id } as LeaderboardEntry);
-          });
-          cloudEntries.sort((a, b) => {
-            if (b.score !== a.score) return b.score - a.score;
-            return a.averageReactionMs - b.averageReactionMs;
-          });
-          onUpdate(cloudEntries);
-        }
+        const cloudEntries: LeaderboardEntry[] = [];
+        snapshot.forEach((d) => {
+          cloudEntries.push({ ...d.data(), id: d.id } as LeaderboardEntry);
+        });
+        cloudEntries.sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return a.averageReactionMs - b.averageReactionMs;
+        });
+
+        // Keep local cache perfectly synchronized
+        try {
+          localStorage.setItem('neuroreflex_leaderboard_v1', JSON.stringify(cloudEntries));
+          if (cloudEntries.length === 0) {
+            localStorage.setItem('neuroreflex_leaderboard_cleared_v1', 'true');
+          } else {
+            localStorage.removeItem('neuroreflex_leaderboard_cleared_v1');
+          }
+        } catch {}
+
+        onUpdate(cloudEntries);
       },
       (error) => {
         console.warn('Leaderboard cloud subscription error, using local fallback:', error);
