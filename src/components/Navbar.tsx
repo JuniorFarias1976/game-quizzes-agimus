@@ -1,6 +1,7 @@
 import React from 'react';
 import { Crosshair, Trophy, Globe, Play, Volume2, VolumeX, Star, Zap, ShieldCheck, Lock, UserPlus } from 'lucide-react';
 import { PlayerStats, CompanyLogoConfig, BrandingColorsConfig } from '../types/game';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   activeTab: 'arena' | 'levels' | 'leaderboard' | 'gallery';
@@ -14,6 +15,7 @@ interface NavbarProps {
   logo?: CompanyLogoConfig;
   branding?: BrandingColorsConfig;
   onOpenRegistration?: () => void;
+  onOpenInstallModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -28,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   logo,
   branding,
   onOpenRegistration,
+  onOpenInstallModal,
 }) => {
   const totalStars = Object.values(stats.levelProgress).reduce((acc, p) => acc + p.stars, 0);
   const primaryColor = branding?.primaryColor || '#00d2ff';
@@ -207,6 +210,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <VolumeX className="w-4 h-4 text-slate-500" />
               )}
             </button>
+          )}
+
+          {/* Fullscreen / Install PWA App Button (Hides browser bar) */}
+          {onOpenInstallModal && (
+            <PWAInstallButton
+              onOpenModal={onOpenInstallModal}
+              primaryColor={primaryColor}
+            />
           )}
 
           {/* Admin Mode / Control Panel Button (Only shown if enabled or when admin is logged in) */}

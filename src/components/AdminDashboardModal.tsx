@@ -50,7 +50,8 @@ import {
   Plus,
   RefreshCw,
   Type,
-  Play
+  Play,
+  Maximize2
 } from 'lucide-react';
 import { readAndCompressImageFile } from '../utils/imageOptimizer';
 
@@ -68,6 +69,7 @@ interface AdminDashboardModalProps {
   onDeleteRegistration?: (id: string) => void;
   onClearRegistrations?: () => void;
   onForceSyncCloud?: () => Promise<boolean>;
+  onOpenInstallModal?: () => void;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
@@ -84,6 +86,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onDeleteRegistration,
   onClearRegistrations,
   onForceSyncCloud,
+  onOpenInstallModal,
 }) => {
   const [activeTab, setActiveTab] = useState<'branding' | 'texts' | 'registration' | 'levels' | 'image' | 'endgame' | 'leaderboard' | 'security'>('branding');
   const [settingsDraft, setSettingsDraft] = useState<AppAdminSettings>(() => ({
@@ -3367,7 +3370,45 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 />
               </div>
 
-              {/* Change Password Form */}
+              {/* Kiosk Mode & PWA Installation Section */}
+              <div className="p-4 sm:p-5 bg-gradient-to-r from-cyan-950/40 via-slate-900 to-slate-950 border border-cyan-500/30 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Maximize2 className="w-5 h-5 text-cyan-400" />
+                    <div>
+                      <h4 className="text-sm font-bold text-white font-display">
+                        Modo Quiosque & Instalação (Sem Barra do Navegador)
+                      </h4>
+                      <p className="text-xs text-slate-400">
+                        Permite instalar o aplicativo no Windows, Mac, iPad ou Android para rodar em tela cheia dedicada.
+                      </p>
+                    </div>
+                  </div>
+
+                  {onOpenInstallModal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenInstallModal();
+                      }}
+                      className="px-4 py-2 rounded-lg text-xs font-bold text-slate-950 bg-cyan-400 hover:bg-cyan-300 transition shadow flex items-center gap-1.5 active:scale-95"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Instalar / Instruções</span>
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1">
+                  <div className="p-2.5 bg-slate-950/70 border border-slate-800 rounded-lg">
+                    <strong className="text-cyan-400">✓ Janela Standalone PWA:</strong> Oculta a barra de URL, abas, botões de voltar/avançar e menus do browser.
+                  </div>
+                  <div className="p-2.5 bg-slate-950/70 border border-slate-800 rounded-lg">
+                    <strong className="text-cyan-400">✓ Suporte a Tela Cheia (F11):</strong> Ideal para totens, tablets e monitores de estandes em eventos.
+                  </div>
+                </div>
+              </div>
+
               <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-xl">
                 <div className="text-xs font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-1.5 font-display">
                   <Key className="w-4 h-4 text-cyan-400" />

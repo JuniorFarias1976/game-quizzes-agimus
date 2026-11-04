@@ -13,7 +13,7 @@ import {
 import { sound } from '../utils/sound';
 import { TargetFigure } from './TargetFigure';
 import { CustomCrosshair } from './CustomCrosshair';
-import { Volume2, VolumeX, RotateCcw, Play, Pause, Flame, Target, Zap, ShieldAlert, Sliders } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Play, Pause, Flame, Target, Zap, ShieldAlert, Sliders, Maximize2 } from 'lucide-react';
 
 interface ArenaProps {
   level: LevelConfig;
@@ -42,6 +42,7 @@ interface ArenaProps {
   onRequestRegistration?: () => void;
   autoStartSignal?: number;
   gameTexts?: GameArenaTextsConfig;
+  onOpenInstallModal?: () => void;
 }
 
 interface FloatingText {
@@ -91,6 +92,7 @@ export const Arena: React.FC<ArenaProps> = ({
   onRequestRegistration,
   autoStartSignal,
   gameTexts,
+  onOpenInstallModal,
 }) => {
   const arenaRef = useRef<HTMLDivElement>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -920,6 +922,17 @@ export const Arena: React.FC<ArenaProps> = ({
               <div className="text-[11px] text-slate-400 font-mono-code">
                 {gameTexts?.splashHintText || 'Toque no botão para iniciar a contagem regressiva'}
               </div>
+
+              {onOpenInstallModal && (
+                <button
+                  type="button"
+                  onClick={onOpenInstallModal}
+                  className="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono-code text-cyan-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-400 transition cursor-pointer shadow-sm active:scale-95"
+                >
+                  <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Instalar App / Modo Sem Barra</span>
+                </button>
+              )}
             </div>
           </div>
         )}

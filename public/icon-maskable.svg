@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#040711" />
+    </radialGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Full-bleed background for maskable adaptive clipping -->
+  <rect width="512" height="512" fill="url(#bg)" />
+
+  <!-- Outer Tech Ring (scaled inside safe zone ~380px) -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#1e293b" stroke-width="4" stroke-dasharray="6 10" />
+
+  <!-- Main Glowing Target Ring inside safe zone -->
+  <circle cx="256" cy="256" r="130" fill="none" stroke="url(#primaryGrad)" stroke-width="7" filter="url(#glow)" opacity="0.9" />
+
+  <!-- Middle Concentric Ring -->
+  <circle cx="256" cy="256" r="90" fill="none" stroke="#00f0ff" stroke-width="2.5" stroke-dasharray="16 8" opacity="0.6" />
+
+  <!-- Crosshair Marks inside safe zone -->
+  <line x1="256" y1="80" x2="256" y2="120" stroke="#00f0ff" stroke-width="4" stroke-linecap="round" />
+  <line x1="256" y1="392" x2="256" y2="432" stroke="#00f0ff" stroke-width="4" stroke-linecap="round" />
+  <line x1="80" y1="256" x2="120" y2="256" stroke="#00f0ff" stroke-width="4" stroke-linecap="round" />
+  <line x1="392" y1="256" x2="432" y2="256" stroke="#00f0ff" stroke-width="4" stroke-linecap="round" />
+
+  <!-- Central Dynamic Reflex Lightning Bolt -->
+  <path d="M276 138 L190 268 L250 268 L232 374 L328 238 L268 238 Z" fill="url(#boltGrad)" filter="url(#glow)" />
+</svg>

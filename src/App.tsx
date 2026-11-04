@@ -57,6 +57,7 @@ import { HiddenControlPanel } from './components/HiddenControlPanel';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { RegistrationModal } from './components/RegistrationModal';
+import { PWAInstallModal } from './components/PWAInstallModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Sliders, ShieldCheck, Lock, UserPlus } from 'lucide-react';
 
@@ -115,6 +116,7 @@ export default function App() {
   // Modals
   const [showResultModal, setShowResultModal] = useState<boolean>(false);
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
+  const [showInstallModal, setShowInstallModal] = useState<boolean>(false);
   const [lastStageStats, setLastStageStats] = useState<{
     levelId: number;
     score: number;
@@ -585,6 +587,7 @@ export default function App() {
         logo={adminSettings.logo}
         branding={adminSettings.branding}
         onOpenRegistration={() => setShowRegistrationModal(true)}
+        onOpenInstallModal={() => setShowInstallModal(true)}
       />
 
       {/* Main Content Area */}
@@ -609,6 +612,7 @@ export default function App() {
               onRequestRegistration={() => setShowRegistrationModal(true)}
               autoStartSignal={autoStartSignal}
               gameTexts={adminSettings.gameTexts}
+              onOpenInstallModal={() => setShowInstallModal(true)}
             />
 
             {/* Admin-Only Controls & Level Switcher (Hidden for normal kiosk users) */}
@@ -826,9 +830,17 @@ export default function App() {
             onDeleteRegistration={handleDeleteRegistration}
             onClearRegistrations={handleClearRegistrations}
             onForceSyncCloud={handleForceSyncCloud}
+            onOpenInstallModal={() => setShowInstallModal(true)}
           />
         )}
       </ErrorBoundary>
+
+      {/* PWA / Kiosk Install Modal (Fullscreen without browser bar) */}
+      <PWAInstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        primaryColor={primaryColor}
+      />
       </div>
     </div>
   );
