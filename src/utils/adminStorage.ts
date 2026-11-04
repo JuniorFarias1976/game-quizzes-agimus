@@ -102,6 +102,7 @@ export function loadAdminSettings(): AppAdminSettings {
         ...DEFAULT_ADMIN_SETTINGS.gameTexts,
         ...(parsed.gameTexts || {}),
       },
+      customLevelConfigs: parsed.customLevelConfigs || DEFAULT_ADMIN_SETTINGS.customLevelConfigs || {},
     };
   } catch {
     return DEFAULT_ADMIN_SETTINGS;

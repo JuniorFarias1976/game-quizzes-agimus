@@ -56,14 +56,26 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'form' | 'config' | 'leads'>('form');
 
-  // Form inputs
-  const [playerName, setPlayerName] = useState(initialPlayerName || '');
+  // Form inputs - strictly blank by default
+  const [playerName, setPlayerName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
   const [cargo, setCargo] = useState('');
   const [consentGiven, setConsentGiven] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Whenever modal opens, guarantee all fields are blank
+  useEffect(() => {
+    if (isOpen) {
+      setPlayerName('');
+      setEmail('');
+      setPhone('');
+      setCompany('');
+      setCargo('');
+      setErrorMsg('');
+    }
+  }, [isOpen]);
 
   // Draft config for the config tab
   const [draftConfig, setDraftConfig] = useState<RegistrationFormConfig>(config);
@@ -314,7 +326,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     required
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
-                    placeholder="Ex: João Silva"
+                    placeholder=""
                     maxLength={24}
                     className="w-full pl-9 pr-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
                   />
@@ -334,7 +346,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       required={config.requireEmail}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="joao.silva@exemplo.com"
+                      placeholder=""
                       className="w-full pl-9 pr-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
                     />
                   </div>
@@ -354,7 +366,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       required={config.requirePhone}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+351 912 345 678 ou (11) 98765-4321"
+                      placeholder=""
                       className="w-full pl-9 pr-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
                     />
                   </div>
@@ -375,7 +387,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         required={config.requireCompany}
                         value={company}
                         onChange={(e) => setCompany(e.target.value)}
-                        placeholder="Nome da sua empresa"
+                        placeholder=""
                         className="w-full pl-9 pr-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
                       />
                     </div>
@@ -394,7 +406,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         required={config.requireCargo}
                         value={cargo}
                         onChange={(e) => setCargo(e.target.value)}
-                        placeholder="Ex: Diretor de TI"
+                        placeholder=""
                         className="w-full pl-9 pr-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
                       />
                     </div>

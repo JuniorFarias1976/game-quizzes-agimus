@@ -118,8 +118,24 @@ export const Arena: React.FC<ArenaProps> = ({
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [screenShake, setScreenShake] = useState(false);
 
+  // Dynamically detect mobile/touch environment
   useEffect(() => {
-    setIsTouchDevice('ontouchstart' in window || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0));
+    const checkTouch = () => {
+      const isMobileSize = typeof window !== 'undefined' && window.innerWidth <= 768;
+      const hasTouch = typeof window !== 'undefined' && (
+        'ontouchstart' in window ||
+        (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) ||
+        Boolean(window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
+      );
+      setIsTouchDevice(isMobileSize || hasTouch);
+    };
+    checkTouch();
+    window.addEventListener('resize', checkTouch);
+    window.addEventListener('orientationchange', checkTouch);
+    return () => {
+      window.removeEventListener('resize', checkTouch);
+      window.removeEventListener('orientationchange', checkTouch);
+    };
   }, []);
 
   // Refs for tracking mutable loops
@@ -576,17 +592,40 @@ export const Arena: React.FC<ArenaProps> = ({
     setMousePos({ x: e.clientX, y: e.clientY });
   };
 
-  // Sync canvas size
+  // Sync canvas size seamlessly across mobile/desktop, orientation changes, and initial mount
   useEffect(() => {
     const handleResize = () => {
       if (arenaRef.current && particleCanvasRef.current) {
-        particleCanvasRef.current.width = arenaRef.current.clientWidth;
-        particleCanvasRef.current.height = arenaRef.current.clientHeight;
+        const rect = arenaRef.current.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          particleCanvasRef.current.width = rect.width;
+          particleCanvasRef.current.height = rect.height;
+        }
       }
     };
+
     handleResize();
+    const t1 = setTimeout(handleResize, 60);
+    const t2 = setTimeout(handleResize, 300);
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && arenaRef.current) {
+      ro = new ResizeObserver(() => {
+        handleResize();
+      });
+      ro.observe(arenaRef.current);
+    }
+
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
   }, []);
 
   const totalAttempts = hits + misses;
@@ -742,7 +781,7 @@ export const Arena: React.FC<ArenaProps> = ({
         }}
         onMouseEnter={() => setIsHoveringArena(true)}
         onMouseLeave={() => setIsHoveringArena(false)}
-        className={`relative w-full h-[58vh] min-h-[360px] sm:h-[520px] max-h-[640px] bg-gradient-to-b from-[#0a0f1d] via-[#070b14] to-[#04070e] border-2 rounded-2xl overflow-hidden select-none cursor-crosshair shadow-2xl transition-transform touch-none overscroll-none ${
+        className={`relative w-full h-[55dvh] min-h-[320px] sm:h-[520px] max-h-[640px] bg-gradient-to-b from-[#0a0f1d] via-[#070b14] to-[#04070e] border-2 rounded-2xl overflow-hidden select-none cursor-crosshair shadow-2xl transition-transform touch-none overscroll-none ${
           screenShake ? 'scale-[0.98] border-red-500 translate-x-1 translate-y-1' : 'border-indigo-500/20'
         }`}
       >

@@ -268,16 +268,33 @@ export function calculateStars(tier: DifficultyTier): number {
 }
 
 export function getMergedLevels(customConfigs?: Record<number, Partial<LevelConfig>>): LevelConfig[] {
-  if (!customConfigs || Object.keys(customConfigs).length === 0) {
+  if (!customConfigs || typeof customConfigs !== 'object' || Object.keys(customConfigs).length === 0) {
     return LEVELS;
   }
   return LEVELS.map((lvl) => {
-    const custom = customConfigs[lvl.id];
-    if (!custom) return lvl;
+    const rawCustom = 
+      (customConfigs as Record<string, Partial<LevelConfig>>)[lvl.id] ?? 
+      (customConfigs as Record<string, Partial<LevelConfig>>)[String(lvl.id)] ?? 
+      (customConfigs as Record<string, Partial<LevelConfig>>)[`level_${lvl.id}`];
+
+    if (!rawCustom || typeof rawCustom !== 'object') return lvl;
+
     return {
       ...lvl,
-      ...custom,
-      // Keep structural safety
+      ...rawCustom,
+      baseDurationMs: rawCustom.baseDurationMs !== undefined && rawCustom.baseDurationMs !== null && !isNaN(Number(rawCustom.baseDurationMs))
+        ? Number(rawCustom.baseDurationMs)
+        : lvl.baseDurationMs,
+      targetSize: rawCustom.targetSize !== undefined && rawCustom.targetSize !== null && !isNaN(Number(rawCustom.targetSize))
+        ? Number(rawCustom.targetSize)
+        : lvl.targetSize,
+      targetCount: rawCustom.targetCount !== undefined && rawCustom.targetCount !== null && !isNaN(Number(rawCustom.targetCount))
+        ? Number(rawCustom.targetCount)
+        : lvl.targetCount,
+      trapChance: rawCustom.trapChance !== undefined && rawCustom.trapChance !== null && !isNaN(Number(rawCustom.trapChance))
+        ? Number(rawCustom.trapChance)
+        : lvl.trapChance,
+      movingTargets: rawCustom.movingTargets !== undefined ? Boolean(rawCustom.movingTargets) : lvl.movingTargets,
       id: lvl.id,
       prizes: lvl.prizes,
     };

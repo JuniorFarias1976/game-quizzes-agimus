@@ -232,18 +232,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   // Level config updater
   const handleUpdateLevelField = (levelId: number, field: keyof LevelConfig, value: unknown) => {
     setSettingsDraft((prev) => {
-      const existing = prev.customLevelConfigs[levelId] || {};
-      const updated = {
+      const existing = 
+        (prev.customLevelConfigs as Record<string, Partial<LevelConfig>>)[levelId] || 
+        (prev.customLevelConfigs as Record<string, Partial<LevelConfig>>)[String(levelId)] || 
+        {};
+      const updatedConfig = {
+        ...existing,
+        [field]: value,
+      };
+      return {
         ...prev,
         customLevelConfigs: {
           ...prev.customLevelConfigs,
-          [levelId]: {
-            ...existing,
-            [field]: value,
-          },
+          [levelId]: updatedConfig,
+          [String(levelId)]: updatedConfig,
         },
       };
-      return updated;
     });
   };
 
@@ -251,7 +255,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const handleResetLevel = (levelId: number) => {
     setSettingsDraft((prev) => {
       const updatedConfigs = { ...prev.customLevelConfigs };
-      delete updatedConfigs[levelId];
+      delete (updatedConfigs as Record<string, unknown>)[levelId];
+      delete (updatedConfigs as Record<string, unknown>)[String(levelId)];
+      delete (updatedConfigs as Record<string, unknown>)[`level_${levelId}`];
       return { ...prev, customLevelConfigs: updatedConfigs };
     });
     showToast(`Fase ${levelId} restaurada para os valores padrão.`);
@@ -693,101 +699,101 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
         )}
 
-        {/* Tab Navigation */}
-        <div className="px-4 pt-3 border-b border-slate-800/80 flex items-center gap-1.5 overflow-x-auto bg-slate-950/40">
+        {/* Tab Navigation - Prominent, readable and touch-friendly */}
+        <div className="px-3 sm:px-6 pt-3.5 pb-1 border-b border-slate-800 flex items-center gap-2 sm:gap-3 overflow-x-auto bg-slate-950/70 scrollbar-thin">
           <button
             onClick={() => setActiveTab('branding')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition whitespace-nowrap rounded-t-xl border-b-2 sm:border-b-[3px] ${
               activeTab === 'branding'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-cyan-400 text-cyan-300 bg-cyan-950/50 shadow-inner'
+                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
             }`}
           >
-            <Palette className="w-4 h-4" />
+            <Palette className="w-5 h-5 flex-shrink-0 text-cyan-400" />
             <span>Cores & Logotipo</span>
           </button>
 
           <button
             onClick={() => setActiveTab('texts')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition whitespace-nowrap rounded-t-xl border-b-2 sm:border-b-[3px] ${
               activeTab === 'texts'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-cyan-400 text-cyan-300 bg-cyan-950/50 shadow-inner'
+                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
             }`}
           >
-            <Type className="w-4 h-4" />
+            <Type className="w-5 h-5 flex-shrink-0 text-cyan-400" />
             <span>Textos & Botão do Jogo</span>
           </button>
 
           <button
             onClick={() => setActiveTab('registration')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition whitespace-nowrap rounded-t-xl border-b-2 sm:border-b-[3px] ${
               activeTab === 'registration'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-cyan-400 text-cyan-300 bg-cyan-950/50 shadow-inner'
+                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
             }`}
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-5 h-5 flex-shrink-0 text-cyan-400" />
             <span>Inscrição & Leads ({registrations.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('levels')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition whitespace-nowrap rounded-t-xl border-b-2 sm:border-b-[3px] ${
               activeTab === 'levels'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-cyan-400 text-cyan-300 bg-cyan-950/50 shadow-inner'
+                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
             }`}
           >
-            <Layers className="w-4 h-4" />
+            <Layers className="w-5 h-5 flex-shrink-0 text-cyan-400" />
             <span>Editor de Fases (1 a 6)</span>
           </button>
 
           <button
             onClick={() => setActiveTab('image')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition whitespace-nowrap rounded-t-xl border-b-2 sm:border-b-[3px] ${
               activeTab === 'image'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-cyan-400 text-cyan-300 bg-cyan-950/50 shadow-inner'
+                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
             }`}
           >
-            <ImageIcon className="w-4 h-4" />
+            <ImageIcon className="w-5 h-5 flex-shrink-0 text-cyan-400" />
             <span>Imagens dos Alvos</span>
           </button>
 
           <button
             onClick={() => setActiveTab('endgame')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition whitespace-nowrap rounded-t-xl border-b-2 sm:border-b-[3px] ${
               activeTab === 'endgame'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-cyan-400 text-cyan-300 bg-cyan-950/50 shadow-inner'
+                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
             }`}
           >
-            <Award className="w-4 h-4" />
+            <Award className="w-5 h-5 flex-shrink-0 text-cyan-400" />
             <span>Imagem Fim de Jogo</span>
           </button>
 
           <button
             onClick={() => setActiveTab('leaderboard')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition whitespace-nowrap rounded-t-xl border-b-2 sm:border-b-[3px] ${
               activeTab === 'leaderboard'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-cyan-400 text-cyan-300 bg-cyan-950/50 shadow-inner'
+                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
             }`}
           >
-            <Trophy className="w-4 h-4" />
+            <Trophy className="w-5 h-5 flex-shrink-0 text-cyan-400" />
             <span>Gestão do Ranking</span>
           </button>
 
           <button
             onClick={() => setActiveTab('security')}
-            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold border-b-2 transition whitespace-nowrap ${
+            className={`flex items-center gap-2.5 px-4 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition whitespace-nowrap rounded-t-xl border-b-2 sm:border-b-[3px] ${
               activeTab === 'security'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-cyan-400 text-cyan-300 bg-cyan-950/50 shadow-inner'
+                : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
             }`}
           >
-            <Key className="w-4 h-4" />
+            <Key className="w-5 h-5 flex-shrink-0 text-cyan-400" />
             <span>Segurança & Senha</span>
           </button>
         </div>
@@ -2290,7 +2296,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           {/* TAB 3: Editor de Fases */}
           {activeTab === 'levels' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
                 <div>
                   <h3 className="text-sm font-bold text-white font-display uppercase tracking-wider">
                     Configuração de Dificuldade de Cada Fase
@@ -2300,27 +2306,44 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </p>
                 </div>
 
-                <button
-                  onClick={() => {
-                    setSettingsDraft((prev) => ({ ...prev, customLevelConfigs: {} }));
-                    showToast('Todas as fases foram restauradas para os padrões originais.');
-                  }}
-                  className="px-3 py-1 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition"
-                >
-                  Restaurar Todas as Fases
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setSettingsDraft((prev) => ({ ...prev, customLevelConfigs: {} }));
+                      showToast('Todas as fases foram restauradas para os padrões originais.');
+                    }}
+                    className="px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition"
+                  >
+                    Restaurar Padrões
+                  </button>
+
+                  <button
+                    onClick={handleSaveAll}
+                    disabled={isSaving}
+                    className="px-4 py-1.5 text-xs font-bold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-lg flex items-center gap-1.5 shadow-md active:scale-95 transition disabled:opacity-50 cursor-pointer"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{isSaving ? 'Salvando...' : 'Salvar Fases na Nuvem'}</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {LEVELS.map((lvl) => {
-                  const custom = settingsDraft.customLevelConfigs[lvl.id] || {};
+                  const custom = 
+                    (settingsDraft.customLevelConfigs as Record<string, Partial<LevelConfig>>)[lvl.id] || 
+                    (settingsDraft.customLevelConfigs as Record<string, Partial<LevelConfig>>)[String(lvl.id)] || 
+                    {};
                   const duration = custom.baseDurationMs ?? lvl.baseDurationMs;
                   const size = custom.targetSize ?? lvl.targetSize;
                   const count = custom.targetCount ?? lvl.targetCount;
                   const trapChance = custom.trapChance ?? lvl.trapChance;
                   const moving = custom.movingTargets ?? lvl.movingTargets;
 
-                  const isModified = Boolean(settingsDraft.customLevelConfigs[lvl.id]);
+                  const isModified = Boolean(
+                    (settingsDraft.customLevelConfigs as Record<string, Partial<LevelConfig>>)[lvl.id] || 
+                    (settingsDraft.customLevelConfigs as Record<string, Partial<LevelConfig>>)[String(lvl.id)]
+                  );
 
                   return (
                     <div

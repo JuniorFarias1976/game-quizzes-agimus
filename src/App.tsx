@@ -133,11 +133,13 @@ export default function App() {
     fetchCloudSettings().then((cloudSettings) => {
       if (cloudSettings) {
         setAdminSettings(cloudSettings);
+        setArenaKey((k) => k + 1);
       }
     });
 
     const unsubscribe = subscribeToCloudSettings((cloudSettings) => {
       setAdminSettings(cloudSettings);
+      setArenaKey((k) => k + 1);
     });
     return () => unsubscribe();
   }, []);
@@ -586,11 +588,11 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-2 sm:px-4 py-3 sm:py-6 overflow-x-hidden">
         {activeTab === 'arena' && (
           <div>
             <Arena
-              key={`${currentLevelId}-${arenaKey}`}
+              key={`${currentLevelId}-${arenaKey}-${currentLevel.baseDurationMs}-${currentLevel.targetSize}-${currentLevel.targetCount}-${currentLevel.trapChance}`}
               level={currentLevel}
               theme={playerStats.equippedTheme}
               crosshair={playerStats.equippedCrosshair}
@@ -783,7 +785,7 @@ export default function App() {
         onSaveConfig={handleSaveRegistrationConfig}
         logo={adminSettings.logo}
         branding={adminSettings.branding}
-        initialPlayerName={playerStats.playerName}
+        initialPlayerName=""
         onCompleteRegistration={handleCompleteRegistration}
         registrations={registrations}
         onDeleteRegistration={handleDeleteRegistration}
